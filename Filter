@@ -1,0 +1,5 @@
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET
+start_station_name = REGEXP_REPLACE(start_station_name, 'Public Rack - ', ''),
+end_station_name = REGEXP_REPLACE(end_station_name, 'Public Rack - ', '')
+WHERE end_station_name LIKE '%Public Rack%' OR start_station_name LIKE '%Public Rack%';
