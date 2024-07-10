@@ -1,1 +1,211 @@
+/*
+1. INITIAL SETUP
+*/
+
+
+-- #1 Create new rows to improve manipulation of data
+
+CREATE OR REPLACE TABLE cyclistic-data-strategy.555.ALL_ALL AS
+
+SELECT
+ *,
+ EXTRACT(YEAR FROM started_at) AS Y,
+   EXTRACT(MONTH FROM started_at) AS M,
+   EXTRACT(WEEK FROM started_at) AS W,
+   EXTRACT(DAY FROM started_at) AS D,
+   EXTRACT(DAYOFWEEK FROM started_at) AS Day_of_Week,
+   EXTRACT(HOUR FROM started_at) AS hour,
+   EXTRACT(MINUTE FROM started_at) AS minute,
+   EXTRACT(SECOND FROM started_at) AS second,
+     CASE
+  WHEN EXTRACT(DAYOFWEEK FROM started_at) = 1 THEN 'Monday'
+  WHEN EXTRACT(DAYOFWEEK FROM started_at) = 2 THEN 'Tuesday'
+  WHEN EXTRACT(DAYOFWEEK FROM started_at) = 3 THEN 'Wednesday'
+  WHEN EXTRACT(DAYOFWEEK FROM started_at) = 4 THEN 'Thursday'
+  WHEN EXTRACT(DAYOFWEEK FROM started_at) = 5 THEN 'Friday'
+  WHEN EXTRACT(DAYOFWEEK FROM started_at) = 6 THEN 'Saturday'
+  WHEN EXTRACT(DAYOFWEEK FROM started_at) = 7 THEN 'Sunday'
+  ELSE CAST(EXTRACT(DAYOFWEEK FROM started_at) AS STRING)
+     END AS week_DAY,
+ TIMESTAMP_DIFF(ended_at, started_at, hour) AS ride_duration,
+ TIMESTAMP_DIFF(ended_at, started_at, minute) AS dur_m,
+ TIMESTAMP_DIFF(ended_at, started_at, second) AS dur_s,
+ CAST(started_at AS DATE) AS ymd,
+   6371 * 2 * ASIN(SQRT(POWER(SIN((end_lat - start_lat) * 3.14 / 180 / 2), 2)
+                    + COS(start_lat * 3.14 / 180)
+                    * COS(end_lat * 3.14 / 180)
+                    * POWER(SIN((end_lng - start_lng) * 3.14 / 180 / 2), 2))) * 3280.84 AS distance_ft,
+ 6371 * 2 * ASIN(SQRT(POWER(SIN((end_lat - start_lat) * 3.14 / 180 / 2), 2)
+                    + COS(start_lat * 3.14 / 180)
+                    * COS(end_lat * 3.14 / 180)
+                    * POWER(SIN((end_lng - start_lng) * 3.14 / 180 / 2), 2))) * 3280.84 / 5280 AS distance_mi
+FROM
+ `cyclistic-data-strategy.555.ALL`
+WHERE TIMESTAMP_DIFF(ended_at, started_at, second) > -9000000
+AND TIMESTAMP_DIFF(ended_at, started_at, second) <= 389652  --topside of duration minutes.
+
+
+--#2 Modify unneccessary info from entries 
+
+     -- that start with Public Rack
+
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET
+start_station_name = REGEXP_REPLACE(start_station_name, 'Public Rack - ', ''),
+end_station_name = REGEXP_REPLACE(end_station_name, 'Public Rack - ', '')
+WHERE end_station_name LIKE '%Public Rack%' OR start_station_name LIKE '%Public Rack%';
+--modified 37,116 rows
+
+
+     -- Modify entries with a *
+
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET
+start_station_name = REGEXP_REPLACE(start_station_name, '*', ''),
+end_station_name = REGEXP_REPLACE(end_station_name, '*', '')
+WHERE start_station_name LIKE '%*%' OR end_station_name LIKE '%*%';
+
+
+    -- Modify entries with temp
+
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET
+start_station_name = REGEXP_REPLACE(start_station_name, 'temp', ''),
+end_station_name = REGEXP_REPLACE(end_station_name, 'temp', '')
+WHERE start_station_name LIKE '%temp%' OR end_station_name LIKE '%temp%';
+
+
+-- #3 Remove entries where ended_at is less than or equal to started_at time.
+
+CREATE OR REPLACE TABLE `cyclistic-data-strategy.555.ALL_clean` AS
+SELECT *
+FROM `cyclistic-data-strategy.555.ALL`
+WHERE ended_at >= started_at;
+
+-- #4 Remove entries from testing centers and bike maintenance facilities.
+
+DELETE
+FROM `cyclistic-data-strategy.555.ALL`
+WHERE
+start_station_name = "DIVVY CASSETTE REPAIR MOBILE STATION" OR
+start_station_name = "Lyft Driver Center Private Rack" OR
+start_station_name = '351' OR
+start_station_name = 'Base - 2132 W Hubbard Warehouse' OR
+start_station_name = 'Hubbard Bike-checking (LBS-WH-TEST)' OR
+start_station_name = 'WEST CHI-WATSON' OR
+end_station_name = 'DIVVY CASSETTE REPAIR MOBILE STATION' OR
+end_station_name = 'Lyft Driver Center Private Rack' OR
+end_station_name = '351' OR
+end_station_name = 'Base - 2132 W Hubbard Warehouse' OR
+end_station_name = 'Hubbard Bike-checking (LBS-WH-TEST)'
+
+
+#  --NULL REPORT
+
+WITH schema_info AS (
+SELECT
+  'ride_id' AS field_name,
+  COUNTIF(ride_id IS NULL) AS null_count
+FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT
+  'rideable_type' AS field_name,
+  COUNTIF(rideable_type IS NULL) AS null_count
+FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT
+  'started_at' AS field_name,
+  COUNTIF(started_at IS NULL) AS null_count
+FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT
+  'ended_at' AS field_name,
+  COUNTIF(ended_at IS NULL) AS null_count
+FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT
+  'start_station_name' AS field_name,
+  COUNTIF(start_station_name IS NULL) AS null_count
+FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT
+  'start_station_id' AS field_name,
+  COUNTIF(start_station_id IS NULL) AS null_count
+FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT
+  'end_station_name' AS field_name,
+  COUNTIF(end_station_name IS NULL) AS null_count
+FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT
+  'end_station_id' AS field_name,
+  COUNTIF(end_station_id IS NULL) AS null_count
+FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT
+  'start_lat' AS field_name,
+  COUNTIF(start_lat IS NULL) AS null_count
+FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT
+  'start_lng' AS field_name,
+  COUNTIF(start_lng IS NULL) AS null_count
+FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT
+  'end_lat' AS field_name,
+  COUNTIF(end_lat IS NULL) AS null_count
+FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT
+  'end_lng' AS field_name,
+  COUNTIF(end_lng IS NULL) AS null_count
+FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT
+  'member_casual' AS field_name,
+  COUNTIF(member_casual IS NULL) AS null_count
+FROM `cyclistic-data-strategy.555.ALL`
+),
+
+
+total_nulls AS (
+SELECT
+  SUM(null_count) AS total_null_count
+FROM schema_info
+),
+
+total_entries AS (
+SELECT
+  COUNT(ride_id) AS total_entries
+FROM `cyclistic-data-strategy.555.ALL`
+),
+
+
+totals AS (
+ SELECT
+   s.field_name,
+   s.null_count,
+   ROUND((s.null_count / (SELECT COUNT(1) FROM `cyclistic-data-strategy.555.ALL`)) * 100, 2) AS null_percentage,
+   CASE
+     WHEN ROW_NUMBER() OVER () <= 13 THEN CAST(e.total_entries AS STRING)
+     ELSE ''
+   END AS total_entries
+ FROM schema_info s
+ LEFT JOIN total_nulls t ON 1=1
+ CROSS JOIN total_entries e
+ UNION ALL
+ SELECT
+   'NULL TOTALS' AS field_name,
+   t.total_null_count AS null_count,
+   ROUND((t.total_null_count / (SELECT COUNT(1) FROM `cyclistic-data-strategy.555.ALL`)) * 100, 2) AS null_percentage,
+   '' AS total_entries
+ FROM total_nulls t
+)
+
+
+SELECT *
+FROM totals
+ORDER BY totals.null_count DESC NULLS LAST;
 
