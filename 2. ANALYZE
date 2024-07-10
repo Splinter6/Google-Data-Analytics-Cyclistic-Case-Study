@@ -1,0 +1,41 @@
+--
+
+WITH MemberData AS (
+  SELECT
+    started_at,
+    ended_at,
+    dur_m,
+    start_station_name,
+    end_station_name,
+    member_casual
+  FROM
+    `cyclistic-data-strategy.555.ALL`
+  WHERE
+    member_casual = 'member'
+),
+CasualData AS (
+  SELECT
+    started_at,
+    ended_at,
+    dur_m,
+    start_station_name,
+    end_station_name,
+    member_casual
+  FROM
+    `cyclistic-data-strategy.555.ALL`
+  WHERE
+    member_casual = 'casual'
+)
+
+-- Compare average trip durations of Members vs Casual users
+SELECT
+  'Member' AS user_type,
+  AVG(dur_m) AS average_trip_duration
+FROM
+  MemberData
+UNION ALL
+SELECT
+  'Casual' AS user_type,
+  AVG(dur_m) AS average_trip_duration
+FROM
+  CasualData;
