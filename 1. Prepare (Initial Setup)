@@ -3,7 +3,7 @@
 */
 
 
--- #1 Create new rows to improve manipulation of data
+-- (A) Create new rows to improve manipulation of data
 
 CREATE OR REPLACE TABLE cyclistic-data-strategy.555.ALL_ALL AS
 
