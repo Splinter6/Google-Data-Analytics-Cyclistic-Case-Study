@@ -13,10 +13,10 @@ SELECT
    EXTRACT(MONTH FROM started_at) AS M,
    EXTRACT(WEEK FROM started_at) AS W,
    EXTRACT(DAY FROM started_at) AS D,
-   EXTRACT(DAYOFWEEK FROM started_at) AS Day_of_Week,
-   EXTRACT(HOUR FROM started_at) AS hour,
-   EXTRACT(MINUTE FROM started_at) AS minute,
-   EXTRACT(SECOND FROM started_at) AS second,
+   EXTRACT(DAYOFWEEK FROM started_at) AS DayofWk,
+   EXTRACT(HOUR FROM started_at) AS start_hour,
+   EXTRACT(MINUTE FROM started_at) AS start_m,
+   EXTRACT(SECOND FROM started_at) AS start_s,
      CASE
   WHEN EXTRACT(DAYOFWEEK FROM started_at) = 1 THEN 'Monday'
   WHEN EXTRACT(DAYOFWEEK FROM started_at) = 2 THEN 'Tuesday'
@@ -25,9 +25,9 @@ SELECT
   WHEN EXTRACT(DAYOFWEEK FROM started_at) = 5 THEN 'Friday'
   WHEN EXTRACT(DAYOFWEEK FROM started_at) = 6 THEN 'Saturday'
   WHEN EXTRACT(DAYOFWEEK FROM started_at) = 7 THEN 'Sunday'
-  ELSE CAST(EXTRACT(DAYOFWEEK FROM started_at) AS STRING)
-     END AS week_DAY,
- TIMESTAMP_DIFF(ended_at, started_at, hour) AS ride_duration,
+  ELSE CAST(EXTRACT(DayofWk FROM started_at) AS STRING)
+     END AS WkDay,
+ TIMESTAMP_DIFF(ended_at, started_at, hour) AS ride_length,
  TIMESTAMP_DIFF(ended_at, started_at, minute) AS dur_m,
  TIMESTAMP_DIFF(ended_at, started_at, second) AS dur_s,
  CAST(started_at AS DATE) AS ymd,
