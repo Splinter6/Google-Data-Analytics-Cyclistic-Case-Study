@@ -1,0 +1,60 @@
+## count distinct stations
+
+SELECT
+  COUNT(DISTINCT start_station_name) AS distinct_start_stations,
+  COUNT(DISTINCT end_station_name) AS distinct_end_stations
+FROM
+  `cyclistic-data-strategy.555.ALLCLEAN`;
+
+# distinct start station
+SELECT
+  DISTINCT start_station_name AS distinct_start_stations
+FROM
+  `cyclistic-data-strategy.555.ALLCLEAN`;
+
+#distinct end station
+SELECT
+  DISTINCT end_station_name AS distinct_end_stations
+FROM
+  `cyclistic-data-strategy.555.ALLCLEAN`
+
+## Format and add columns.
+
+CREATE OR REPLACE TABLE cyclistic-data-strategy.555.ALLCLEAN AS
+
+SELECT
+  *,
+    EXTRACT(YEAR FROM started_at) AS Y,
+    EXTRACT(MONTH FROM started_at) AS M,
+    EXTRACT(WEEK FROM started_at) AS W,
+    EXTRACT(DAY FROM started_at) AS D,
+    EXTRACT(HOUR FROM started_at) AS hour,
+    EXTRACT(MINUTE FROM started_at) AS minute,
+    EXTRACT(SECOND FROM started_at) AS second,
+      CASE
+   WHEN EXTRACT(DAYOFWEEK FROM started_at) = 1 THEN 'Monday'
+   WHEN EXTRACT(DAYOFWEEK FROM started_at) = 2 THEN 'Tuesday'
+   WHEN EXTRACT(DAYOFWEEK FROM started_at) = 3 THEN 'Wednesday'
+   WHEN EXTRACT(DAYOFWEEK FROM started_at) = 4 THEN 'Thursday'
+   WHEN EXTRACT(DAYOFWEEK FROM started_at) = 5 THEN 'Friday'
+   WHEN EXTRACT(DAYOFWEEK FROM started_at) = 6 THEN 'Saturday'
+   WHEN EXTRACT(DAYOFWEEK FROM started_at) = 7 THEN 'Sunday'
+   ELSE CAST(EXTRACT(DAYOFWEEK FROM started_at) AS STRING)
+      END AS week_DAY,
+  TIMESTAMP_DIFF(ended_at, started_at, hour) AS ride_duration,
+  TIMESTAMP_DIFF(ended_at, started_at, minute) AS dur_m,
+  TIMESTAMP_DIFF(ended_at, started_at, second) AS dur_s,
+  CAST(started_at AS DATE) AS ymd,
+    6371 * 2 * ASIN(SQRT(POWER(SIN((end_lat - start_lat) * 3.14 / 180 / 2), 2)
+                     + COS(start_lat * 3.14 / 180) 
+                     * COS(end_lat * 3.14 / 180) 
+                     * POWER(SIN((end_lng - start_lng) * 3.14 / 180 / 2), 2))) * 3280.84 AS distance_ft,
+    6371 * 2 * ASIN(SQRT(POWER(SIN((end_lat - start_lat) * 3.14 / 180 / 2), 2)
+                     + COS(start_lat * 3.14 / 180) 
+                     * COS(end_lat * 3.14 / 180) 
+                     * POWER(SIN((end_lng - start_lng) * 3.14 / 180 / 2), 2))) * 3280.84 / 5280 AS distance_mi
+FROM
+  `cyclistic-data-strategy.555.ALL`
+WHERE TIMESTAMP_DIFF(ended_at, started_at, second) > 0
+AND TIMESTAMP_DIFF(ended_at, started_at, second) <= 720; --topside of duration minutes. 
+/*Find outliers*/
