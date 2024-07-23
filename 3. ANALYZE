@@ -1,8 +1,30 @@
 3. ANALYZE Member riders vs. Casual
 
-
-
-
+OUTLINE: 
+##        Count Total Trips
+##        Trip Count X User & bike type
+##        TRIP COUNT X Day of Week
+##        Day of Week
+##        DAY OF MONTH
+##        MONTH
+##        Most popular time of day
+##        Time of day by Season
+###   RIDE DURATIONS
+##        AVG, MAX, MODE Duration
+##        Trip count by day of week
+###       RIDE COUNT X DAY OF WEEK X MEMBER TYPE
+##        RIDE COUNT BY HOUR  
+##        RIDE DURATION COUNT x PERCENT of RIDES: MEMBER
+##        RIDE DURATION COUNT x PERCENT of RIDES: CASUAL
+##        Cumulative percentage of trips between 0 and 80 minutes in duration.
+###   DISTANCE
+##        Avg of miles traveled members vs casual riders and bike type
+##    STATION POPULARITY
+##        Find mode of start and end stations excluding nulls
+##        Top 20 Start Stations by Total Ride Count
+##        Top 20 End stations with Total Ride Count
+###   ROUTE POPULARITY
+##        Top 10 Routes by ride count and day of week
 
 --                    ## Count Total Trips M vs C
 SELECT 
@@ -244,10 +266,8 @@ ORDER BY
  dur_m;
 
 
---                        ##        
+--                        ##        RIDE DURATION COUNT x PERCENT of RIDES: MEMBER
 
-
-RIDE DURATION COUNT x PERCENT of RIDES: MEMBER
 WITH ride_times AS (
  SELECT
    dur_m,
@@ -271,7 +291,8 @@ WHERE
 ORDER BY
  dur_m
 
-RIDE DURATION COUNT x PERCENT of RIDES: CASUAL
+
+--                        ##        RIDE DURATION COUNT x PERCENT of RIDES: CASUAL
 WITH ride_times AS (
  SELECT
    dur_m,
@@ -321,8 +342,9 @@ FROM DurationCounts d, TotalTrips t
 ORDER BY d.trip_duration ASC;
 
 
-DISTANCE
-Avg of miles traveled members vs casual riders and bike type
+--                        ##        DISTANCE
+
+--                        ##        Avg of miles traveled members vs casual riders and bike type
 
 SELECT
     member_casual,
@@ -336,8 +358,9 @@ GROUP BY
 ORDER BY
     TotalDistance_mi DESC;
 
-DISTANCE
-Avg of miles traveled members vs casual riders and bike type
+--                        ##        DISTANCE
+
+--                        ##        Avg of miles traveled members vs casual riders and bike type
 
 SELECT
     member_casual,
@@ -350,9 +373,7 @@ GROUP BY
     rideable_type
 ORDER BY
     TotalDistance_mi DESC;
-Minimize image
-Edit image
-Delete image
+
 
 
 including the mph column helped me find outliers in the data.
@@ -373,10 +394,14 @@ WHERE mph IS NULL
 
 
 
---                        ##        STATION POPULARITY
+--                        ###        STATION POPULARITY
 
 DRAFT __ BETAMODE
--- Find mode of start and end stations excluding nulls
+
+
+--                        ##        Find mode of start and end stations excluding nulls
+
+
 WITH StartStationFrequency AS (
   SELECT 
     start_station_name,
@@ -422,84 +447,55 @@ ORDER BY
 LIMIT 1;
 
 
---                        ##
+--                        ##       Top 20 Start Stations with Total Ride Count
 
 SELECT 
-    DISTINCT start_station_name,
-        SUM(
-            CASE WHEN ride_id = ride_id AND start_station_name = start_station_name THEN 1 ELSE 0 END
-            ) AS total,
-        SUM(
-            CASE WHEN member_casual = 'member' AND start_station_name = start_station_name THEN 1 ELSE 0 END
-            ) AS member,
-        SUM(
-            CASE WHEN member_casual = 'casual' AND start_station_name = start_station_name THEN 1 ELSE 0 END
-            ) AS casual
+  start_station_name,
+  COUNT(ride_id) AS total,
+  SUM(CASE WHEN member_casual = 'member' THEN 1 ELSE 0 END) AS member,
+  SUM(CASE WHEN member_casual = 'casual' THEN 1 ELSE 0 END) AS casual
 FROM 
   `cyclistic-data-strategy.555.ALLCLEAN`
+WHERE start_station_name IS NOT NULL
 GROUP BY 
-    start_station_name
+  start_station_name
 ORDER BY 
-    total DESC
+  total DESC
 LIMIT 20;
 
 
---                        ##
+--                        ##        Top 20 End_Stations with Total Ride Count
 
 END STATION POPULARITY
 
 SELECT 
-    DISTINCT end_station_name,
-        SUM(
-            CASE WHEN ride_id = ride_id AND end_station_name = end_station_name THEN 1 ELSE 0 END
-            ) AS total,
-        SUM(
-            CASE WHEN member_casual = 'member' AND end_station_name = end_station_name THEN 1 ELSE 0 END
-            ) AS member,
-        SUM(
-            CASE WHEN member_casual = 'casual' AND end_station_name = end_station_name THEN 1 ELSE 0 END
-            ) AS casual
+  end_station_name,
+  COUNT(ride_id) AS total,
+  SUM(CASE WHEN member_casual = 'member' THEN 1 ELSE 0 END) AS member,
+  SUM(CASE WHEN member_casual = 'casual' THEN 1 ELSE 0 END) AS casual
 FROM 
   `cyclistic-data-strategy.555.ALLCLEAN`
+WHERE end_station_name IS NOT NULL
 GROUP BY 
-    end_station_name
+  start_station_name
 ORDER BY 
-    total DESC
+  total DESC
 LIMIT 20;
 
 
 
-ROUTE POPULARITY
+--                        ###        ROUTE POPULARITY
 
 
-This SQL query combines the names of the departure and arrival stations to create a route name. Then it counts the number of trips for each route created depending on the user type (member_casual). The result is sorted by the number of trips in reverse order (from highest to lowest).
+--                        ###       Top 10 Routes by day of week, time of day, and type.
 
 SELECT 
   CONCAT(start_station_name, ' to ', end_station_name) AS route,
   COUNT(ride_id) AS number_of_rides,
-  member_casual
-FROM 
-  `cyclistic-data-strategy.555.ALLCLEAN`
-WHERE 
-  start_station_name IS NOT NULL
-  AND end_station_name IS NOT NULL
-GROUP BY 
-  route, 
-  member_casual
-ORDER BY 
-  number_of_rides DESC
-LIMIT 10;
-
-
---                        ##        This SQL query calculates the average trip length in minutes by day of the week, route, bike type, and user type (member or casual user). The results are grouped by these four aspects and displayed sorted by the number of trips in descending order.
-
-SELECT 
-  CONCAT(start_station_name, ' to ', end_station_name) AS route,
   dayofweek,
-  COUNT(ride_id) AS number_of_rides,
+  timeofday,
   rideable_type,
-  member_casual,
-  timeofday
+  member_casual
 FROM 
   `cyclistic-data-strategy.555.ALLCLEAN`
 WHERE 
@@ -517,6 +513,8 @@ LIMIT 15;
 
 
 
+calculates the average trip length in minutes by day of the week, route, bike type, and user type (member or casual user). 
+The results are grouped by these four aspects and displayed sorted by the number of trips in descending order.
 
 
 
