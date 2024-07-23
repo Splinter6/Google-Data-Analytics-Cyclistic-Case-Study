@@ -1,6 +1,10 @@
-3. ANALYZE
+3. ANALYZE Member riders vs. Casual
 
---            ## Count Total Trips M vs C
+
+
+
+
+--                    ## Count Total Trips M vs C
 SELECT 
         TotalTrips,
         TotalMemberTrips,
@@ -17,6 +21,142 @@ FROM
 
 
 
+--                        ## Trips by user and bike type
+
+WITH TotalCounts AS (
+    SELECT COUNT(*) AS TotalRideNumber
+    FROM `cyclistic-data-strategy.555.ALLCLEAN`
+)
+SELECT
+    member_casual,
+    rideable_type,
+    COUNT(*) AS TotalTrips,
+    ROUND((COUNT(*) / TotalCounts.TotalRideNumber) * 100, 1) AS PercentageOfTotal,
+    TotalCounts.TotalRideNumber
+FROM
+    `cyclistic-data-strategy.555.ALLCLEAN`,
+    TotalCounts
+GROUP BY
+    member_casual,
+    rideable_type,
+    TotalRideNumber
+ORDER BY
+    TotalTrips DESC;
+
+
+--                        ##        TRIP COUNT X DAY OF WEEK
+
+
+SELECT COUNT(rideable_type) as rides_taken,
+  day,
+  member_casual,
+FROM 
+data
+GROUP BY member_casual, day
+ORDER BY member_casual
+
+
+
+--                        ##        Day of Week
+
+SELECT
+    dayofweek,
+    COUNT(*) AS TotalTrips,
+    COUNT(CASE WHEN member_casual = 'member' THEN 1 END) AS MemberTrips,
+    COUNT(CASE WHEN member_casual = 'casual' THEN 1 END) AS CasualTrips
+FROM
+    `cyclistic-data-strategy.555.ALLCLEAN`
+GROUP BY
+    dayofweek
+
+
+--                        ##         DAY OF MONTH
+
+SELECT
+    DayofMonth,
+    COUNT(*) AS TotalTrips,
+    COUNT(CASE WHEN member_casual = 'member' THEN 1 END) AS MemberTrips,
+    COUNT(CASE WHEN member_casual = 'casual' THEN 1 END) AS CasualTrips
+FROM
+    `cyclistic-data-strategy.555.ALLCLEAN`
+GROUP BY
+    DayofMonth
+ORDER BY
+    DayofMonth
+LIMIT 10;
+
+--                        ##        MONTH
+
+SELECT
+    month,
+    COUNT(*) AS TotalTrips,
+    COUNT(CASE WHEN member_casual = 'member' THEN 1 END) AS MemberTrips,
+    COUNT(CASE WHEN member_casual = 'casual' THEN 1 END) AS CasualTrips
+FROM
+    `cyclistic-data-strategy.555.ALLCLEAN`
+GROUP BY
+    month
+ORDER BY
+    month;
+
+
+--                         ##        Most popular time of day
+
+Most popular time of day to ride
+SELECT
+    timeofday,
+    COUNT(*) AS TotalTrips,
+    COUNT(CASE WHEN member_casual = 'member' THEN 1 END) AS MemberTrips,
+    COUNT(CASE WHEN member_casual = 'casual' THEN 1 END) AS CasualTrips
+FROM
+    `cyclistic-data-strategy.555.ALLCLEAN`
+GROUP BY
+    timeofday
+ORDER BY
+    timeofday;
+
+--                        ##        Time of day by Season
+
+
+
+--                        ##        RIDE DURATIONS
+
+avg, max, mode
+
+--                        ##       AVG, MAX, MODE Duration
+
+WITH Durations AS (
+    SELECT
+        member_casual,
+        dur_m,
+        dur_h
+    FROM
+        `cyclistic-data-strategy.555.ALLCLEAN`
+),
+ModeDurations AS (
+    SELECT
+        member_casual,
+        dur_m,
+        COUNT(*) AS frequency,
+        ROW_NUMBER() OVER (PARTITION BY member_casual ORDER BY COUNT(*) DESC) AS rn
+    FROM
+        Durations
+    GROUP BY
+        member_casual, dur_m
+)
+SELECT
+    d.member_casual,
+    ROUND(AVG(d.dur_m),2) AS Avg_Duration_minutes,
+    MAX(d.dur_h) AS Max_Duration_in_hours,
+    m.dur_m AS Mode_Duration_minutes
+FROM
+    Durations d
+JOIN
+    ModeDurations m ON d.member_casual = m.member_casual AND m.rn = 1
+GROUP BY
+    d.member_casual, m.dur_m
+ORDER BY
+    d.member_casual;
 
 
 
@@ -29,7 +169,17 @@ FROM
 
 
 
---
+
+
+
+
+
+
+
+
+
+
+--                        ###
 
 WITH MemberData AS (
   SELECT
