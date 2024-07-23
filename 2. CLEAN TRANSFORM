@@ -105,13 +105,6 @@ CASE
     WHEN EXTRACT(HOUR FROM started_at) BETWEEN 13 AND 23 THEN CAST(EXTRACT(HOUR FROM started_at) - 12 AS STRING) || ' PM'
     ELSE CAST(EXTRACT(HOUR FROM started_at) AS STRING)
   END AS hour,
-CASE
-    WHEN EXTRACT(HOUR FROM started_at) BETWEEN 5 AND 11 THEN 'Morning'
-    WHEN EXTRACT(HOUR FROM started_at) BETWEEN 12 AND 16 THEN 'Afternoon'
-    WHEN EXTRACT(HOUR FROM started_at) BETWEEN 17 AND 20 THEN 'Evening'
-    WHEN EXTRACT(HOUR FROM started_at) BETWEEN 21 AND 23 OR EXTRACT(HOUR FROM started_at) BETWEEN 0 AND 4 THEN 'Night'
-    ELSE 'Unknown'
-  END AS period_of_day,
   ROUND((TIMESTAMP_DIFF(ended_at, started_at, minute) / 60), 4) AS dur_h,
   TIMESTAMP_DIFF(ended_at, started_at, minute) AS dur_m,
   TIMESTAMP_DIFF(ended_at, started_at, second) AS dur_s,
@@ -129,7 +122,7 @@ CASE
                    * POWER(SIN((end_lng - start_lng) * 3.14 / 180 / 2), 2))) * 3280.84 / 5280) / (TIMESTAMP_DIFF(ended_at, started_at, minute) / 60), 2) AS mph
 FROM
   `cyclistic-data-strategy.555.ALL`
-WHERE TIMESTAMP_DIFF(ended_at, started_at, minute) <= 360  --(12 hours = 720), (6 hour = 360)
+WHERE TIMESTAMP_DIFF(ended_at, started_at, minute) <= 720 --(12 hours = 720), (6 hour = 360)
 AND TIMESTAMP_DIFF(ended_at, started_at, minute) >= 1;
 
 
