@@ -117,6 +117,36 @@ ORDER BY
 
 --                        ##        Time of day by Season
 
+WITH CategorizedTrips AS (
+    SELECT
+        CASE
+            WHEN EXTRACT(HOUR FROM started_at) BETWEEN 6 AND 11 THEN 'Morning  (6-11am)'
+            WHEN EXTRACT(HOUR FROM started_at) BETWEEN 12 AND 17 THEN 'Afternoon(12-5pm)'
+            WHEN EXTRACT(HOUR FROM started_at) BETWEEN 18 AND 23 THEN 'Evening  (6-11pm)'
+            ELSE 'Night       (12-5am)'
+        END AS time_of_day,
+        COUNT(*) AS TotalTrips,
+        COUNT(CASE WHEN member_casual = 'member' THEN 1 END) AS MemberTrips,
+        COUNT(CASE WHEN member_casual = 'casual' THEN 1 END) AS CasualTrips
+    FROM
+        `cyclistic-data-strategy.555.ALLCLEAN`
+    GROUP BY
+        time_of_day
+)
+SELECT
+    time_of_day,
+    TotalTrips,
+    MemberTrips,
+    CasualTrips
+FROM
+    CategorizedTrips
+ORDER BY
+    CASE
+        WHEN time_of_day = 'Morning' THEN 1
+        WHEN time_of_day = 'Afternoon' THEN 2
+        WHEN time_of_day = 'Evening' THEN 3
+        ELSE 4
+    END
 
 
 --                        ##        RIDE DURATIONS
@@ -160,7 +190,34 @@ ORDER BY
 
 
 
+--                        ##        Trip count by day of week
 
+-- ***count rides taken by members and casual users on each day of the week
+
+SELECT COUNT(rideable_type) as rides_taken,
+  day,
+  member_casual,
+FROM 
+data
+GROUP BY member_casual, day
+ORDER BY member_casual
+
+
+--                        ###        RIDE COUNT X DAY OF WEEK X MEMBER TYPE
+
+SELECT 
+  dayofweek,
+  COUNT(CASE WHEN member_casual = 'member' THEN rideable_type END) AS member_rides,
+  COUNT(CASE WHEN member_casual = 'casual' THEN rideable_type END) AS casual_rides
+FROM 
+  `cyclistic-data-strategy.555.ALLCLEAN`
+GROUP BY 
+  dayofweek
+ORDER BY 
+  member_rides ASC;
+
+
+--                      ###        RIDE COUNT BY HOUR     
 
 
 
