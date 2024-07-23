@@ -92,6 +92,12 @@ CASE
     WHEN EXTRACT(dayofweek FROM started_at) = 7 THEN 'Sunday'
     ELSE CAST(EXTRACT(dayofweek FROM started_at) AS STRING)
   END AS dayofweek,
+        CASE
+            WHEN EXTRACT(HOUR FROM started_at) BETWEEN 6 AND 11 THEN 'Morning  (6-11am)'
+            WHEN EXTRACT(HOUR FROM started_at) BETWEEN 12 AND 17 THEN 'Afternoon(12-5pm)'
+            WHEN EXTRACT(HOUR FROM started_at) BETWEEN 18 AND 23 THEN 'Evening  (6-11pm)'
+            ELSE 'Night       (12-5am)'
+    END AS time_of_day,
 CASE
     WHEN EXTRACT(HOUR FROM started_at) = 0 THEN '12 AM'
     WHEN EXTRACT(HOUR FROM started_at) BETWEEN 1 AND 11 THEN CAST(EXTRACT(HOUR FROM started_at) AS STRING) || ' AM'
