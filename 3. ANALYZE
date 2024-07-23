@@ -13,7 +13,7 @@ OUTLINE:
 ##        Most popular time of day
 ##        Most popular time of day X Season
 ###   DURATIONS
-##        AVG, MAX, MODE Duration
+##        AVG, MAX, MODE
 ##        Trip count by day of week
 ###       RIDE COUNT X DAY OF WEEK X MEMBER TYPE
 ##        RIDE COUNT BY HOUR  
@@ -512,12 +512,7 @@ GROUP BY
   rideable_type
 ORDER BY 
   number_of_rides DESC
-LIMIT 15;
-
-
-
-calculates the average trip length in minutes by day of the week, route, bike type, and user type (member or casual user). 
-The results are grouped by these four aspects and displayed sorted by the number of trips in descending order.
+LIMIT 10;
 
 
 
@@ -536,6 +531,7 @@ The results are grouped by these four aspects and displayed sorted by the number
 
 
 
+/*
 --                        ###
 
 WITH MemberData AS (
@@ -577,3 +573,4 @@ SELECT
   AVG(dur_m) AS average_trip_duration
 FROM
   CasualData;
+*/
