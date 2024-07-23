@@ -2,102 +2,14 @@
 1. INITIAL SETUP
 */
 
+## VIEW REPORTS ##
+-- OUTLINE
+a. Null Report
+b. Distinct Value Report
+c. 
 
 -- (A) Create new rows to improve manipulation of data
 
-CREATE OR REPLACE TABLE cyclistic-data-strategy.555.ALL_ALL AS
-
-SELECT
- *,
- EXTRACT(YEAR FROM started_at) AS Y,
-   EXTRACT(MONTH FROM started_at) AS M,
-   EXTRACT(WEEK FROM started_at) AS W,
-   EXTRACT(DAY FROM started_at) AS D,
-   EXTRACT(DAYOFWEEK FROM started_at) AS DayofWk,
-   EXTRACT(HOUR FROM started_at) AS start_hour,
-   EXTRACT(MINUTE FROM started_at) AS start_m,
-   EXTRACT(SECOND FROM started_at) AS start_s,
-     CASE
-  WHEN EXTRACT(DAYOFWEEK FROM started_at) = 1 THEN 'Monday'
-  WHEN EXTRACT(DAYOFWEEK FROM started_at) = 2 THEN 'Tuesday'
-  WHEN EXTRACT(DAYOFWEEK FROM started_at) = 3 THEN 'Wednesday'
-  WHEN EXTRACT(DAYOFWEEK FROM started_at) = 4 THEN 'Thursday'
-  WHEN EXTRACT(DAYOFWEEK FROM started_at) = 5 THEN 'Friday'
-  WHEN EXTRACT(DAYOFWEEK FROM started_at) = 6 THEN 'Saturday'
-  WHEN EXTRACT(DAYOFWEEK FROM started_at) = 7 THEN 'Sunday'
-  ELSE CAST(EXTRACT(DayofWk FROM started_at) AS STRING)
-     END AS WkDay,
- TIMESTAMP_DIFF(ended_at, started_at, hour) AS ride_length,
- TIMESTAMP_DIFF(ended_at, started_at, minute) AS dur_m,
- TIMESTAMP_DIFF(ended_at, started_at, second) AS dur_s,
- CAST(started_at AS DATE) AS ymd,
-   6371 * 2 * ASIN(SQRT(POWER(SIN((end_lat - start_lat) * 3.14 / 180 / 2), 2)
-                    + COS(start_lat * 3.14 / 180)
-                    * COS(end_lat * 3.14 / 180)
-                    * POWER(SIN((end_lng - start_lng) * 3.14 / 180 / 2), 2))) * 3280.84 AS distance_ft,
- 6371 * 2 * ASIN(SQRT(POWER(SIN((end_lat - start_lat) * 3.14 / 180 / 2), 2)
-                    + COS(start_lat * 3.14 / 180)
-                    * COS(end_lat * 3.14 / 180)
-                    * POWER(SIN((end_lng - start_lng) * 3.14 / 180 / 2), 2))) * 3280.84 / 5280 AS distance_mi
-FROM
- `cyclistic-data-strategy.555.ALL`
-WHERE TIMESTAMP_DIFF(ended_at, started_at, second) > -9000000
-AND TIMESTAMP_DIFF(ended_at, started_at, second) <= 389652  --topside of duration minutes.
-
-
---#2 Modify unneccessary info from entries 
-
-     -- that start with Public Rack
-
-UPDATE `cyclistic-data-strategy.555.ALL`
-SET
-start_station_name = REGEXP_REPLACE(start_station_name, 'Public Rack - ', ''),
-end_station_name = REGEXP_REPLACE(end_station_name, 'Public Rack - ', '')
-WHERE end_station_name LIKE '%Public Rack%' OR start_station_name LIKE '%Public Rack%';
---modified 37,116 rows
-
-
-     -- Modify entries with a *
-
-UPDATE `cyclistic-data-strategy.555.ALL`
-SET
-start_station_name = REGEXP_REPLACE(start_station_name, '*', ''),
-end_station_name = REGEXP_REPLACE(end_station_name, '*', '')
-WHERE start_station_name LIKE '%*%' OR end_station_name LIKE '%*%';
-
-
-    -- Modify entries with temp
-
-UPDATE `cyclistic-data-strategy.555.ALL`
-SET
-start_station_name = REGEXP_REPLACE(start_station_name, 'temp', ''),
-end_station_name = REGEXP_REPLACE(end_station_name, 'temp', '')
-WHERE start_station_name LIKE '%temp%' OR end_station_name LIKE '%temp%';
-
-
--- #3 Remove entries where ended_at is less than or equal to started_at time.
-
-CREATE OR REPLACE TABLE `cyclistic-data-strategy.555.ALL_clean` AS
-SELECT *
-FROM `cyclistic-data-strategy.555.ALL`
-WHERE ended_at >= started_at;
-
--- #4 Remove entries from testing centers and bike maintenance facilities.
-
-DELETE
-FROM `cyclistic-data-strategy.555.ALL`
-WHERE
-start_station_name = "DIVVY CASSETTE REPAIR MOBILE STATION" OR
-start_station_name = "Lyft Driver Center Private Rack" OR
-start_station_name = '351' OR
-start_station_name = 'Base - 2132 W Hubbard Warehouse' OR
-start_station_name = 'Hubbard Bike-checking (LBS-WH-TEST)' OR
-start_station_name = 'WEST CHI-WATSON' OR
-end_station_name = 'DIVVY CASSETTE REPAIR MOBILE STATION' OR
-end_station_name = 'Lyft Driver Center Private Rack' OR
-end_station_name = '351' OR
-end_station_name = 'Base - 2132 W Hubbard Warehouse' OR
-end_station_name = 'Hubbard Bike-checking (LBS-WH-TEST)'
 
 
 #  --NULL REPORT
@@ -209,3 +121,134 @@ SELECT *
 FROM totals
 ORDER BY totals.null_count DESC NULLS LAST;
 
+
+
+-- Distinct Counts Report:
+
+SELECT 'ride_id' AS column_name, COUNT(DISTINCT ride_id) AS count FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT 'rideable_type', COUNT(DISTINCT rideable_type) FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT 'started_at', COUNT(DISTINCT started_at) FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT 'ended_at', COUNT(DISTINCT ended_at) FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT 'start_station_name', COUNT(DISTINCT start_station_name) FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT 'start_station_id', COUNT(DISTINCT start_station_id) FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT 'end_station_name', COUNT(DISTINCT end_station_name) FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT 'end_station_id', COUNT(DISTINCT end_station_id) FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT 'start_lat', COUNT(DISTINCT start_lat) FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT 'start_lng', COUNT(DISTINCT start_lng) FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT 'end_lat', COUNT(DISTINCT end_lat) FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT 'end_lng', COUNT(DISTINCT end_lng) FROM `cyclistic-data-strategy.555.ALL`
+UNION ALL
+SELECT 'member_casual', COUNT(DISTINCT member_casual) FROM `cyclistic-data-strategy.555.ALL`;
+
+
+-- ###   IRREGULAR PATTERN REPORT ###
+
+ITH counts AS (
+  SELECT 
+    'start_station_starts_with_space' AS pattern, COUNTIF(REGEXP_CONTAINS(start_station_name, r'^ ')) AS count FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'start_station_ends_with_space', COUNTIF(REGEXP_CONTAINS(start_station_name, r' $')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'start_station_ends_with_asterisk', COUNTIF(REGEXP_CONTAINS(start_station_name, r'\*$')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'start_station_ends_with_midblock', COUNTIF(REGEXP_CONTAINS(start_station_name, r' - midblock$')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'start_station_contains_test', COUNTIF(REGEXP_CONTAINS(start_station_name, r'test')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'start_station_contains_temp', COUNTIF(REGEXP_CONTAINS(start_station_name, r'Temp')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'start_station_contains_repair', COUNTIF(REGEXP_CONTAINS(start_station_name, r'repair')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'start_station_contains_charging', COUNTIF(REGEXP_CONTAINS(start_station_name, r'Charging')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'start_station_contains_asterisk', COUNTIF(REGEXP_CONTAINS(start_station_name, r'\*')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'start_station_contains_TEST', COUNTIF(REGEXP_CONTAINS(start_station_name, r'TEST')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'start_station_is_lyft_driver_center_private_rack', COUNTIF(REGEXP_CONTAINS(start_station_name, r'^Lyft$')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'start_station_is_buckingham_fountain', COUNTIF(REGEXP_CONTAINS(start_station_name, r'Buckingham - Fountain')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'start_station_is_mason_archer', COUNTIF(REGEXP_CONTAINS(start_station_name, r'Mason & Archer')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'end_station_starts_with_space', COUNTIF(REGEXP_CONTAINS(end_station_name, r'^ ')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'end_station_ends_with_space', COUNTIF(REGEXP_CONTAINS(end_station_name, r' $')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'end_station_ends_with_asterisk', COUNTIF(REGEXP_CONTAINS(end_station_name, r'\*$')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'end_station_ends_with_midblock', COUNTIF(REGEXP_CONTAINS(end_station_name, r' - midblock$')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'end_station_contains_test', COUNTIF(REGEXP_CONTAINS(end_station_name, r'test')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'end_station_contains_temp', COUNTIF(REGEXP_CONTAINS(end_station_name, r'Temp')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'end_station_contains_repair', COUNTIF(REGEXP_CONTAINS(end_station_name, r'repair')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'end_station_contains_charging', COUNTIF(REGEXP_CONTAINS(end_station_name, r'Charging')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'end_station_contains_asterisk', COUNTIF(REGEXP_CONTAINS(end_station_name, r'\*')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'end_station_contains_TEST', COUNTIF(REGEXP_CONTAINS(end_station_name, r'TEST')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'end_station_is_divvy_cassette_repair_mobile_station', COUNTIF(REGEXP_CONTAINS(end_station_name, r'^DIVVY CASSETTE REPAIR MOBILE STATION$')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'end_station_is_lyft_driver_center_private_rack', COUNTIF(REGEXP_CONTAINS(end_station_name, r'^Lyft$')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'end_station_is_351', COUNTIF(REGEXP_CONTAINS(end_station_name, r'^351$')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'end_station_is_base_2132_w_hubbard_warehouse', COUNTIF(REGEXP_CONTAINS(end_station_name, r'^Base - 2132 W Hubbard Warehouse$')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'end_station_is_hubbard_bike_checking', COUNTIF(REGEXP_CONTAINS(end_station_name, r'Hubbard Bike-checking \(LBS-WH-TEST\)')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'end_station_public_rack', COUNTIF(REGEXP_CONTAINS(end_station_name, r'Public Rack - ')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'end_station_buckingham_fountain', COUNTIF(REGEXP_CONTAINS(end_station_name, r'Buckingham - Fountain')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'end_station_mason_archer', COUNTIF(REGEXP_CONTAINS(end_station_name, r'Mason & Archer')) FROM `cyclistic-data-strategy.555.ALL`
+)
+
+SELECT pattern, count
+FROM counts
+WHERE count > 0;
