@@ -1,35 +1,51 @@
 3. ANALYZE 
 
-All calcs to compare Member riders vs. Casual riders
+--        All calcs compare MEMBER & CASUAL riders
+
 
 OUTLINE:
-###    COUNT
-##        Count Total Trips
-##        Trip Count X User & bike type
-##        TRIP COUNT X Day of Week
-##        Day of Week
-##        Day of Month
-##        Month
-##        Most popular time of day
-##        Most popular time of day X Season
-###   DURATIONS
-##        AVG, MAX, MODE
-##        Trip count by day of week
-###       RIDE COUNT X DAY OF WEEK X MEMBER TYPE
-##        RIDE COUNT BY HOUR  
-##        RIDE DURATION COUNT x PERCENT of RIDES: MEMBER
-##        RIDE DURATION COUNT x PERCENT of RIDES: CASUAL
-##        Cumulative percentage of trips between 0 and 80 minutes in duration.
-###   DISTANCE
-##        Avg of miles traveled members vs casual riders and bike type
-##    STATION POPULARITY
-##        Find mode of start and end stations excluding nulls
-##        Top 20 Start Stations by Total Ride Count
-##        Top 20 End stations with Total Ride Count
-###   ROUTE POPULARITY
-##        Top 10 Routes by ride count and day of week
 
---                    ## Count Total Trips M vs C
+###   COUNT
+##1        Total Trips
+##2        Trip Count X User X bike type
+##3        Trip Count X Weekday
+##4        Most Popular Month Day
+##5        Most popular Month
+##6        Most popular Day of Week
+##7        Most popular Time of Day
+##8        Most popular Time of Day X Season
+##9        RIDE COUNT BY HOUR  
+##10       RIDE COUNT X DAY OF WEEK X MEMBER TYPE
+
+###   DURATIONS
+##1        AVG, MAX, MODE, MEDIAN
+##2        Median Ride Duration
+##3        RIDE COUNT X DAY OF WEEK X MEMBER TYPE
+##4        RIDE DURATION COUNT x PERCENT of RIDES: MEMBER
+##5        RIDE DURATION COUNT x PERCENT of RIDES: CASUAL
+##6        Cumulative percentage of trips between 0 and 80 minutes in duration
+
+###   DISTANCE
+##1        Avg of miles traveled by bike type
+##2        Median miles traveled
+
+###   STATION/ROUTE POPULARITY
+##1        Find mode of start and end stations excluding nulls
+##2        Top 20 Start Stations by Total Ride Count
+##3        Top 20 End stations with Total Ride Count
+##4        Top 10 Routes by ride count and day of week
+
+
+###   SPEED?
+
+
+
+
+
+
+
+-- 1                        ##        Total Trips
+
 SELECT 
         TotalTrips,
         TotalMemberTrips,
@@ -46,7 +62,7 @@ FROM
 
 
 
---                        ## Trips by user and bike type
+-- 2                        ##        Trips by user and bike type
 
 WITH TotalCounts AS (
     SELECT COUNT(*) AS TotalRideNumber
@@ -69,10 +85,12 @@ ORDER BY
     TotalTrips DESC;
 
 
---                        ##        TRIP COUNT X DAY OF WEEK
+
+-- 3                        ##        Most popular Trip count by day of week
 
 
-SELECT COUNT(rideable_type) as rides_taken,
+SELECT
+COUNT(rideable_type) as rides_taken,
   day,
   member_casual,
 FROM 
@@ -81,8 +99,7 @@ GROUP BY member_casual, day
 ORDER BY member_casual
 
 
-
---                        ##        Day of Week
+-- 4                        ##        Most Popular Day of Week
 
 SELECT
     dayofweek,
@@ -95,7 +112,7 @@ GROUP BY
     dayofweek
 
 
---                        ##         DAY OF MONTH
+-- 5                       ##         Most Popular DAY of Month
 
 SELECT
     DayofMonth,
@@ -110,7 +127,7 @@ ORDER BY
     DayofMonth
 LIMIT 10;
 
---                        ##        MONTH
+-- 6                        ##        Most Popular MONTH 
 
 SELECT
     month,
@@ -125,7 +142,7 @@ ORDER BY
     month;
 
 
---                         ##        Most popular time of day
+-- 7                        ##        Most popular time of day
 
 Most popular time of day to ride
 SELECT
@@ -140,7 +157,7 @@ GROUP BY
 ORDER BY
     timeofday;
 
---                        ##        Time of day by Season
+-- 8                        ##        Time of day by Season
 
 WITH CategorizedTrips AS (
     SELECT
@@ -174,11 +191,12 @@ ORDER BY
     END
 
 
---                        ##        RIDE DURATIONS
 
-avg, max, mode
 
---                        ##       AVG, MAX, MODE Duration
+---                        ###        RIDE DURATIONS
+
+
+-- 1                       ##       AVG, MAX, MODE Duration
 
 WITH Durations AS (
     SELECT
@@ -215,20 +233,7 @@ ORDER BY
 
 
 
---                        ##        Trip count by day of week
-
--- ***count rides taken by members and casual users on each day of the week
-
-SELECT COUNT(rideable_type) as rides_taken,
-  day,
-  member_casual,
-FROM 
-data
-GROUP BY member_casual, day
-ORDER BY member_casual
-
-
---                        ###        RIDE COUNT X DAY OF WEEK X MEMBER TYPE
+-- 2                        ###        RIDE COUNT X DAY OF WEEK X MEMBER TYPE
 
 SELECT 
   dayofweek,
@@ -344,6 +349,23 @@ SELECT
 FROM DurationCounts d, TotalTrips t
 ORDER BY d.trip_duration ASC;
 
+--                        ##        Median Duration of Ride
+
+SELECT
+    member_casual,
+    median_ride_length
+FROM (
+    SELECT
+        member_casual,
+        APPROX_QUANTILES(dur_m, 2)[OFFSET(1)] AS median_ride_length
+    FROM
+        `cyclistic-data-strategy.555.ALLCLEAN`
+    GROUP BY
+        member_casual
+)
+ORDER BY
+    median_ride_length DESC
+LIMIT 2;
 
 --                        ##        DISTANCE
 
