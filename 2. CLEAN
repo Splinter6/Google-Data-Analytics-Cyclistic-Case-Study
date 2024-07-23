@@ -1,0 +1,310 @@
+2. CLEAN PROCESS                                                  
+                                        
+
+                                              ### view>delete duplicate ride_id's ###
+
+        # Step 1: 
+CREATE OR REPLACE TABLE `cyclistic-data-strategy.555.temporary_duplicates` AS 
+WITH duplicates AS (
+
+SELECT
+    *,
+    ROW_NUMBER() OVER (PARTITION BY ride_id ORDER BY started_at) AS rownum
+FROM
+    `cyclistic-data-strategy.555.ALL`
+)
+SELECT *
+FROM duplicates
+WHERE rownum > 1;
+
+        # Step 2: Delete duplicates from the original table using the temporary table #
+
+DELETE FROM `cyclistic-data-strategy.555.ALL` AS a
+WHERE EXISTS (
+  SELECT 2
+  FROM `cyclistic-data-strategy.555.temporary_duplicates` AS t
+  WHERE a.ride_id = t.ride_id
+  AND a.started_at = t.started_at
+  AND a.ended_at = t.ended_at
+);
+
+        # Step 3: Drop the temporary table #
+
+DROP TABLE `cyclistic-data-strategy.555.temporary_duplicates`;
+
+--This statement removed 211 rows from ALL, 
+--The row count is now 5734170.
+
+
+
+
+                              ### Switch duration data on any rides which ended_at > started_at.  ###
+
+
+
+SELECT
+*
+FROM
+`cyclistic-data-strategy.555.ALL`
+WHERE started_at > ended_at;
+
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET started_at = ended_at,
+    ended_at = started_at
+WHERE started_at > ended_at;
+
+
+
+
+
+
+
+                                             ###      CREATE COLUMNS IN NEW TABLE     ###
+
+CREATE OR REPLACE TABLE `cyclistic-data-strategy.555.ALLCLEAN` AS
+SELECT
+  *,
+  EXTRACT(YEAR FROM started_at) AS Y,
+  CASE
+    WHEN EXTRACT(MONTH FROM started_at) = 1 THEN 'January'
+    WHEN EXTRACT(MONTH FROM started_at) = 2 THEN 'February'
+    WHEN EXTRACT(MONTH FROM started_at) = 3 THEN 'March'
+    WHEN EXTRACT(MONTH FROM started_at) = 4 THEN 'April'
+    WHEN EXTRACT(MONTH FROM started_at) = 5 THEN 'May'
+    WHEN EXTRACT(MONTH FROM started_at) = 6 THEN 'June'
+    WHEN EXTRACT(MONTH FROM started_at) = 7 THEN 'July'
+    WHEN EXTRACT(MONTH FROM started_at) = 8 THEN 'August'
+    WHEN EXTRACT(MONTH FROM started_at) = 9 THEN 'September'
+    WHEN EXTRACT(MONTH FROM started_at) = 10 THEN 'October'
+    WHEN EXTRACT(MONTH FROM started_at) = 11 THEN 'November'
+    WHEN EXTRACT(MONTH FROM started_at) = 12 THEN 'December'
+    ELSE CAST(EXTRACT(MONTH FROM started_at) AS STRING)
+  END AS month,
+  EXTRACT(WEEK FROM started_at) AS WeekofYear,
+  EXTRACT(DAY FROM started_at) AS DayofMonth,
+CASE
+    WHEN EXTRACT(dayofweek FROM started_at) = 1 THEN 'Monday'
+    WHEN EXTRACT(dayofweek FROM started_at) = 2 THEN 'Tuesday'
+    WHEN EXTRACT(dayofweek FROM started_at) = 3 THEN 'Wednesday'
+    WHEN EXTRACT(dayofweek FROM started_at) = 4 THEN 'Thursday'
+    WHEN EXTRACT(dayofweek FROM started_at) = 5 THEN 'Friday'
+    WHEN EXTRACT(dayofweek FROM started_at) = 6 THEN 'Saturday'
+    WHEN EXTRACT(dayofweek FROM started_at) = 7 THEN 'Sunday'
+    ELSE CAST(EXTRACT(dayofweek FROM started_at) AS STRING)
+  END AS dayofweek,
+CASE
+    WHEN EXTRACT(HOUR FROM started_at) = 0 THEN '12 AM'
+    WHEN EXTRACT(HOUR FROM started_at) BETWEEN 1 AND 11 THEN CAST(EXTRACT(HOUR FROM started_at) AS STRING) || ' AM'
+    WHEN EXTRACT(HOUR FROM started_at) = 12 THEN '12 PM'
+    WHEN EXTRACT(HOUR FROM started_at) BETWEEN 13 AND 23 THEN CAST(EXTRACT(HOUR FROM started_at) - 12 AS STRING) || ' PM'
+    ELSE CAST(EXTRACT(HOUR FROM started_at) AS STRING)
+  END AS hour,
+CASE
+    WHEN EXTRACT(HOUR FROM started_at) BETWEEN 5 AND 11 THEN 'Morning'
+    WHEN EXTRACT(HOUR FROM started_at) BETWEEN 12 AND 16 THEN 'Afternoon'
+    WHEN EXTRACT(HOUR FROM started_at) BETWEEN 17 AND 20 THEN 'Evening'
+    WHEN EXTRACT(HOUR FROM started_at) BETWEEN 21 AND 23 OR EXTRACT(HOUR FROM started_at) BETWEEN 0 AND 4 THEN 'Night'
+    ELSE 'Unknown'
+  END AS period_of_day,
+  ROUND((TIMESTAMP_DIFF(ended_at, started_at, minute) / 60), 4) AS dur_h,
+  TIMESTAMP_DIFF(ended_at, started_at, minute) AS dur_m,
+  TIMESTAMP_DIFF(ended_at, started_at, second) AS dur_s,
+  6371 * 2 * ASIN(SQRT(POWER(SIN((end_lat - start_lat) * 3.14 / 180 / 2), 2)
+                   + COS(start_lat * 3.14 / 180) 
+                   * COS(end_lat * 3.14 / 180) 
+                   * POWER(SIN((end_lng - start_lng) * 3.14 / 180 / 2), 2))) * 3280.84 AS distance_ft,
+  6371 * 2 * ASIN(SQRT(POWER(SIN((end_lat - start_lat) * 3.14 / 180 / 2), 2)
+                   + COS(start_lat * 3.14 / 180) 
+                   * COS(end_lat * 3.14 / 180) 
+                   * POWER(SIN((end_lng - start_lng) * 3.14 / 180 / 2), 2))) * 3280.84 / 5280 AS distance_mi,
+  ROUND((6371 * 2 * ASIN(SQRT(POWER(SIN((end_lat - start_lat) * 3.14 / 180 / 2), 2)
+                   + COS(start_lat * 3.14 / 180) 
+                   * COS(end_lat * 3.14 / 180) 
+                   * POWER(SIN((end_lng - start_lng) * 3.14 / 180 / 2), 2))) * 3280.84 / 5280) / (TIMESTAMP_DIFF(ended_at, started_at, minute) / 60), 2) AS mph
+FROM
+  `cyclistic-data-strategy.555.ALL`
+WHERE TIMESTAMP_DIFF(ended_at, started_at, minute) <= 360  --(12 hours = 720), (6 hour = 360)
+AND TIMESTAMP_DIFF(ended_at, started_at, minute) >= 1;
+
+
+
+
+
+
+
+
+                                          ###      Transform irregularities      ###
+
+--    # fix start_station_name's
+
+-- Remove trailing' (Public Rack) - ' from start_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r' \(Public Rack\) - $', ''))
+WHERE REGEXP_CONTAINS(start_station_name, r' \(Public Rack\) - $');
+
+-- Remove trailing asterisks from start_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'\*$', ''))
+WHERE REGEXP_CONTAINS(start_station_name, r'\*$');
+
+-- Remove trailing ' (Temp)' from start_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r' \ (Temp\)$', ''))
+WHERE REGEXP_CONTAINS(start_station_name, r' \ (Temp\)$');
+
+-- Remove leading '(Public Rack) - ' from start_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'^\(Public Rack\) - ', ''))
+WHERE REGEXP_CONTAINS(start_station_name, r'^\(Public Rack\) - ');
+
+-- Remove occurrences of 'midblock' from start_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'midblock', ''))
+WHERE REGEXP_CONTAINS(start_station_name, r'midblock');
+
+-- Change 'Buckingham - Fountain' to 'Buckingham Fountain' in start_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'Buckingham - Fountain', 'Buckingham Fountain'))
+WHERE REGEXP_CONTAINS(start_station_name, r'Buckingham - Fountain');
+
+-- Change 'Mason & Archer' to 'Mason Ave & Archer Ave' in start_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'Mason & Archer', 'Mason Ave & Archer Ave'))
+WHERE REGEXP_CONTAINS(start_station_name, r'Mason & Archer');
+
+--               # Repeat the same for end stations.
+
+-- Remove trailing ' (Public Rack) - ' from end_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r' \(Public Rack\) - $', ''))
+WHERE REGEXP_CONTAINS(end_station_name, r' \(Public Rack\) - $');
+
+-- Remove trailing asterisks from end_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'\*$', ''))
+WHERE REGEXP_CONTAINS(end_station_name, r'\*$');
+
+-- Remove trailing ' (Temp)' from end_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r' \ (Temp\)$', ''))
+WHERE REGEXP_CONTAINS(end_station_name, r' \ (Temp\)$');
+
+-- Remove leading '(Public Rack) - ' from end_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'^\(Public Rack\) - ', ''))
+WHERE REGEXP_CONTAINS(end_station_name, r'^\(Public Rack\) - ');
+
+-- Remove occurrences of 'midblock' from end_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'midblock', ''))
+WHERE REGEXP_CONTAINS(end_station_name, r'midblock');
+
+-- Change 'Buckingham - Fountain' to 'Buckingham Fountain' in end_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'Buckingham - Fountain', 'Buckingham Fountain'))
+WHERE REGEXP_CONTAINS(end_station_name, r'Buckingham - Fountain');
+
+-- Change 'Mason & Archer' to 'Mason Ave & Archer Ave' in end_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'Mason & Archer', 'Mason Ave & Archer Ave'))
+WHERE REGEXP_CONTAINS(end_station_name, r'Mason & Archer');
+
+
+
+
+
+
+
+
+                                              ###        FIX IRREGULARITIES        ###
+
+
+
+-- Remove trailing asterisks from start_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'\*$', ''))
+WHERE REGEXP_CONTAINS(start_station_name, r'\*$');
+
+-- Remove trailing ' (Temp)' from start_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r' \ (Temp\)$', ''))
+WHERE REGEXP_CONTAINS(start_station_name, r' \ (Temp\)$');
+
+-- Remove leading '(Public Rack) - ' from start_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'^\(Public Rack\) - ', ''))
+WHERE REGEXP_CONTAINS(start_station_name, r'^\(Public Rack\) - ');
+
+-- Remove trailing ' (Public Rack) - ' from start_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r' \(Public Rack\) - $', ''))
+WHERE REGEXP_CONTAINS(start_station_name, r' \(Public Rack\) - $');
+
+-- Remove occurrences of 'midblock' from start_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'midblock', ''))
+WHERE REGEXP_CONTAINS(start_station_name, r'midblock');
+
+-- Change 'Buckingham - Fountain' to 'Buckingham Fountain' in start_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'Buckingham - Fountain', 'Buckingham Fountain'))
+WHERE REGEXP_CONTAINS(start_station_name, r'Buckingham - Fountain');
+
+-- Change 'Mason & Archer' to 'Mason Ave & Archer Ave' in start_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'Mason & Archer', 'Mason Ave & Archer Ave'))
+WHERE REGEXP_CONTAINS(start_station_name, r'Mason & Archer');
+
+               -- Repeat the same for end stations.
+
+-- Remove trailing asterisks from end_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'\*$', ''))
+WHERE REGEXP_CONTAINS(end_station_name, r'\*$');
+
+-- Remove trailing ' (Temp)' from end_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r' \ (Temp\)$', ''))
+WHERE REGEXP_CONTAINS(end_station_name, r' \ (Temp\)$');
+
+-- Remove leading '(Public Rack) - ' from end_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'^\(Public Rack\) - ', ''))
+WHERE REGEXP_CONTAINS(end_station_name, r'^\(Public Rack\) - ');
+
+-- Remove trailing ' (Public Rack) - ' from end_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r' \(Public Rack\) - $', ''))
+WHERE REGEXP_CONTAINS(end_station_name, r' \(Public Rack\) - $');
+
+-- Remove occurrences of 'midblock' from end_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'midblock', ''))
+WHERE REGEXP_CONTAINS(end_station_name, r'midblock');
+
+-- Change 'Buckingham - Fountain' to 'Buckingham Fountain' in end_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'Buckingham - Fountain', 'Buckingham Fountain'))
+WHERE REGEXP_CONTAINS(end_station_name, r'Buckingham - Fountain');
+
+-- Change 'Mason & Archer' to 'Mason Ave & Archer Ave' in end_station_name
+UPDATE `cyclistic-data-strategy.555.ALL`
+SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'Mason & Archer', 'Mason Ave & Archer Ave'))
+WHERE REGEXP_CONTAINS(end_station_name, r'Mason & Archer');
+
+
+
+
+
+
+
+                                                ### DELETE UNIMPORTANT INFO ###
+
+DELETE
+FROM `cyclistic-data-strategy.555.ALLCLEAN`
+WHERE
+start_station_name LIKE '%BONFIRE%'
+OR
+end_station_name LIKE '%BONFIRE%';
+
+
