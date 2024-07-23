@@ -1,15 +1,18 @@
-3. ANALYZE Member riders vs. Casual
+3. ANALYZE 
 
-OUTLINE: 
+All calcs to compare Member riders vs. Casual riders
+
+OUTLINE:
+###    COUNT
 ##        Count Total Trips
 ##        Trip Count X User & bike type
 ##        TRIP COUNT X Day of Week
 ##        Day of Week
-##        DAY OF MONTH
-##        MONTH
+##        Day of Month
+##        Month
 ##        Most popular time of day
-##        Time of day by Season
-###   RIDE DURATIONS
+##        Most popular time of day X Season
+###   DURATIONS
 ##        AVG, MAX, MODE Duration
 ##        Trip count by day of week
 ###       RIDE COUNT X DAY OF WEEK X MEMBER TYPE
