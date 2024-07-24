@@ -1,21 +1,25 @@
+
 3. ANALYZE 
 
 --        All calcs compare MEMBER & CASUAL riders
 
 
+
+
+
 OUTLINE:
 
 ###   COUNT
-##1        Total Trips
-##2        Trip Count X User X bike type
+##1        Trip Count Total
+##2        Trip Count X Bike Type
 ##3        Trip Count X Weekday
 ##4        Most Popular Month Day
 ##5        Most popular Month
 ##6        Most popular Day of Week
 ##7        Most popular Time of Day
 ##8        Most popular Time of Day X Season
-##9        RIDE COUNT BY HOUR  
-##10       RIDE COUNT X DAY OF WEEK X MEMBER TYPE
+##9        Trip Count X Hour
+
 
 ###   DURATIONS
 ##1        AVG, MAX, MODE, MEDIAN
@@ -62,7 +66,7 @@ FROM
 
 
 
--- 2                        ##        Trips by user and bike type
+-- 2                        ##        Trip Count X User X bike type
 
 WITH TotalCounts AS (
     SELECT COUNT(*) AS TotalRideNumber
@@ -86,7 +90,7 @@ ORDER BY
 
 
 
--- 3                        ##        Most popular Trip count by day of week
+-- 3                        ##        Trip Count X Weekday
 
 
 SELECT
@@ -99,20 +103,7 @@ GROUP BY member_casual, day
 ORDER BY member_casual
 
 
--- 4                        ##        Most Popular Day of Week
-
-SELECT
-    dayofweek,
-    COUNT(*) AS TotalTrips,
-    COUNT(CASE WHEN member_casual = 'member' THEN 1 END) AS MemberTrips,
-    COUNT(CASE WHEN member_casual = 'casual' THEN 1 END) AS CasualTrips
-FROM
-    `cyclistic-data-strategy.555.ALLCLEAN`
-GROUP BY
-    dayofweek
-
-
--- 5                       ##         Most Popular DAY of Month
+-- 4                       ##         Most Popular DAY of Month
 
 SELECT
     DayofMonth,
@@ -127,7 +118,8 @@ ORDER BY
     DayofMonth
 LIMIT 10;
 
--- 6                        ##        Most Popular MONTH 
+
+-- 5                        ##        Most Popular MONTH 
 
 SELECT
     month,
@@ -141,6 +133,30 @@ GROUP BY
 ORDER BY
     month;
 
+-- 6                        ##        Most Popular Day of Week
+
+SELECT
+    dayofweek,
+    COUNT(*) AS TotalTrips,
+    COUNT(CASE WHEN member_casual = 'member' THEN 1 END) AS MemberTrips,
+    COUNT(CASE WHEN member_casual = 'casual' THEN 1 END) AS CasualTrips
+FROM
+    `cyclistic-data-strategy.555.ALLCLEAN`
+GROUP BY
+    dayofweek
+
+
+
+
+##1        Total Trips
+##2        Trip Count X User X bike type
+##3        Trip Count X Weekday
+##4        Most Popular Month Day
+##5        Most popular Month
+##6        Most popular Day of Week
+##7        Most popular Time of Day
+##8        Most popular Time of Day X Season
+##9        RIDE COUNT BY HOUR 
 
 -- 7                        ##        Most popular time of day
 
@@ -193,10 +209,18 @@ ORDER BY
 
 
 
----                        ###        RIDE DURATIONS
+-- 9                       ## Ride Count by Hour
 
 
--- 1                       ##       AVG, MAX, MODE Duration
+
+
+
+
+
+---                        ###        RIDE DURATIONS        ###
+
+
+-- 1                       ##       AVG, MAX, MODE Duration        ##
 
 WITH Durations AS (
     SELECT
