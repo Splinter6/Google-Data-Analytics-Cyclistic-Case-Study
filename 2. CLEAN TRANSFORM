@@ -80,9 +80,16 @@ SELECT
     WHEN EXTRACT(MONTH FROM started_at) = 12 THEN 'December'
     ELSE CAST(EXTRACT(MONTH FROM started_at) AS STRING)
   END AS month,
+  CASE
+    WHEN EXTRACT(MONTH FROM started_at) IN (12, 1, 2) THEN 'Winter'
+    WHEN EXTRACT(MONTH FROM started_at) IN (3, 4, 5) THEN 'Spring'
+    WHEN EXTRACT(MONTH FROM started_at) IN (6, 7, 8) THEN 'Summer'
+    WHEN EXTRACT(MONTH FROM started_at) IN (9, 10, 11) THEN 'Autumn'
+    ELSE 'Unknown'
+  END AS season,
   EXTRACT(WEEK FROM started_at) AS WeekofYear,
   EXTRACT(DAY FROM started_at) AS DayofMonth,
-CASE
+  CASE
     WHEN EXTRACT(dayofweek FROM started_at) = 1 THEN 'Monday'
     WHEN EXTRACT(dayofweek FROM started_at) = 2 THEN 'Tuesday'
     WHEN EXTRACT(dayofweek FROM started_at) = 3 THEN 'Wednesday'
@@ -92,13 +99,13 @@ CASE
     WHEN EXTRACT(dayofweek FROM started_at) = 7 THEN 'Sunday'
     ELSE CAST(EXTRACT(dayofweek FROM started_at) AS STRING)
   END AS dayofweek,
-        CASE
-            WHEN EXTRACT(HOUR FROM started_at) BETWEEN 6 AND 11 THEN 'Morning  (6-11am)'
-            WHEN EXTRACT(HOUR FROM started_at) BETWEEN 12 AND 17 THEN 'Afternoon(12-5pm)'
-            WHEN EXTRACT(HOUR FROM started_at) BETWEEN 18 AND 23 THEN 'Evening  (6-11pm)'
-            ELSE 'Night       (12-5am)'
-    END AS time_of_day,
-CASE
+  CASE
+    WHEN EXTRACT(HOUR FROM started_at) BETWEEN 6 AND 11 THEN 'Morning  (6-11am)'
+    WHEN EXTRACT(HOUR FROM started_at) BETWEEN 12 AND 17 THEN 'Afternoon(12-5pm)'
+    WHEN EXTRACT(HOUR FROM started_at) BETWEEN 18 AND 23 THEN 'Evening  (6-11pm)'
+    ELSE 'Night       (12-5am)'
+  END AS time_of_day,
+  CASE
     WHEN EXTRACT(HOUR FROM started_at) = 0 THEN '12 AM'
     WHEN EXTRACT(HOUR FROM started_at) BETWEEN 1 AND 11 THEN CAST(EXTRACT(HOUR FROM started_at) AS STRING) || ' AM'
     WHEN EXTRACT(HOUR FROM started_at) = 12 THEN '12 PM'
@@ -121,13 +128,22 @@ CASE
                    * COS(end_lat * 3.14 / 180) 
                    * POWER(SIN((end_lng - start_lng) * 3.14 / 180 / 2), 2))) * 3280.84 / 5280) / (TIMESTAMP_DIFF(ended_at, started_at, minute) / 60), 2) AS mph
 FROM
-  `cyclistic-data-strategy.555.ALL`
+  `cyclistic-data-strategy.555.ALL`;
+
+
+
+
+--      ##  Add on Filters
+*/  
 WHERE TIMESTAMP_DIFF(ended_at, started_at, minute) <= 720 --(12 hours = 720), (6 hour = 360)
 AND TIMESTAMP_DIFF(ended_at, started_at, minute) >= 1;
 
-
-
-
+AND (CASE
+   WHEN TIMESTAMP_DIFF(ended_at, started_at, MINUTE) > 0 THEN
+   ROUND((6371 * 2 * ASIN(SQRT(POWER(SIN((end_lat - start_lat) * 3.14 / 180 / 2), 2) + COS(start_lat * 3.14 / 180) * COS(end_lat * 3.14 / 180) * POWER(SIN((end_lng - start_lng) * 3.14 / 180 / 2), 2))) * 3280.84 / 5280) / (TIMESTAMP_DIFF(ended_at, started_at, MINUTE) / 60), 2)
+ELSE NULL
+    END) BETWEEN 1 AND 30;
+*/
 
 
 
