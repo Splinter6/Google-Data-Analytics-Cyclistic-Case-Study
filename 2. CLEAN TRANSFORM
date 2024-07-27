@@ -180,6 +180,13 @@ UPDATE `cyclistic-data-strategy.555.ALLCLEAN`
 SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'Mason & Archer', 'Mason Ave & Archer Ave'))
 WHERE REGEXP_CONTAINS(start_station_name, r'Mason & Archer');
 
+-- Change 'Streeter Dr/Grand Ave' to 'Streeter Dr & Grand Ave' in start_station_name
+UPDATE `cyclistic-data-strategy.555.ALLCLEAN`
+SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'Streeter Dr/Grand Ave', 'Streeter Dr & Grand Ave'))
+WHERE REGEXP_CONTAINS(start_station_name, r'Streeter Dr/Grand Ave'); -- This statement modified 3,460 rows in ALLCLEAN.
+
+
+
 -- ## Repeat the same for end stations.
 
 -- Remove leading '(Public Rack) - ' from end_station_name
@@ -211,6 +218,11 @@ WHERE REGEXP_CONTAINS(end_station_name, r'Buckingham - Fountain');
 UPDATE `cyclistic-data-strategy.555.ALLCLEAN`
 SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'Mason & Archer', 'Mason Ave & Archer Ave'))
 WHERE REGEXP_CONTAINS(end_station_name, r'Mason & Archer');
+
+-- Change 'Streeter Dr/Grand Ave' to 'Streeter Dr & Grand Ave' in start_station_name
+UPDATE `cyclistic-data-strategy.555.ALLCLEAN`
+SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'Streeter Dr/Grand Ave', 'Streeter Dr & Grand Ave'))
+WHERE REGEXP_CONTAINS(end_station_name, r'Streeter Dr/Grand Ave'); -- This statement modified 3,460 rows in ALLCLEAN.
 
 
 
