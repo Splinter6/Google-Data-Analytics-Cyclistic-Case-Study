@@ -526,7 +526,7 @@ FROM
   `cyclistic-data-strategy.555.ALLCLEAN`
 WHERE end_station_name IS NOT NULL
 GROUP BY 
-  start_station_name
+  end_station_name
 ORDER BY 
   total DESC
 LIMIT 20;
