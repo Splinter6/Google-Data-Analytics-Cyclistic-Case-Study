@@ -148,164 +148,81 @@ ELSE NULL
 
 
 
-                                          ###      Transform irregularities      ###
-
---    # fix start_station_name's
-
--- Remove trailing' (Public Rack) - ' from start_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
-SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r' \(Public Rack\) - $', ''))
-WHERE REGEXP_CONTAINS(start_station_name, r' \(Public Rack\) - $');
-
--- Remove trailing asterisks from start_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
-SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'\*$', ''))
-WHERE REGEXP_CONTAINS(start_station_name, r'\*$');
-
--- Remove trailing ' (Temp)' from start_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
-SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r' \ (Temp\)$', ''))
-WHERE REGEXP_CONTAINS(start_station_name, r' \ (Temp\)$');
-
--- Remove leading '(Public Rack) - ' from start_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
-SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'^\(Public Rack\) - ', ''))
-WHERE REGEXP_CONTAINS(start_station_name, r'^\(Public Rack\) - ');
-
--- Remove occurrences of 'midblock' from start_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
-SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'midblock', ''))
-WHERE REGEXP_CONTAINS(start_station_name, r'midblock');
-
--- Change 'Buckingham - Fountain' to 'Buckingham Fountain' in start_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
-SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'Buckingham - Fountain', 'Buckingham Fountain'))
-WHERE REGEXP_CONTAINS(start_station_name, r'Buckingham - Fountain');
-
--- Change 'Mason & Archer' to 'Mason Ave & Archer Ave' in start_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
-SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'Mason & Archer', 'Mason Ave & Archer Ave'))
-WHERE REGEXP_CONTAINS(start_station_name, r'Mason & Archer');
-
---    # Repeat the same for end stations.
-
--- Remove trailing ' (Public Rack) - ' from end_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
-SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r' \(Public Rack\) - $', ''))
-WHERE REGEXP_CONTAINS(end_station_name, r' \(Public Rack\) - $');
-
--- Remove trailing asterisks from end_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
-SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'\*$', ''))
-WHERE REGEXP_CONTAINS(end_station_name, r'\*$');
-
--- Remove trailing ' (Temp)' from end_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
-SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r' \ (Temp\)$', ''))
-WHERE REGEXP_CONTAINS(end_station_name, r' \ (Temp\)$');
-
--- Remove leading '(Public Rack) - ' from end_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
-SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'^\(Public Rack\) - ', ''))
-WHERE REGEXP_CONTAINS(end_station_name, r'^\(Public Rack\) - ');
-
--- Remove occurrences of 'midblock' from end_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
-SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'midblock', ''))
-WHERE REGEXP_CONTAINS(end_station_name, r'midblock');
-
--- Change 'Buckingham - Fountain' to 'Buckingham Fountain' in end_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
-SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'Buckingham - Fountain', 'Buckingham Fountain'))
-WHERE REGEXP_CONTAINS(end_station_name, r'Buckingham - Fountain');
-
--- Change 'Mason & Archer' to 'Mason Ave & Archer Ave' in end_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
-SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'Mason & Archer', 'Mason Ave & Archer Ave'))
-WHERE REGEXP_CONTAINS(end_station_name, r'Mason & Archer');
-
-
-
-
-
-
-
-
-                                              ###        FIX IRREGULARITIES        ###
-
-
-
--- Remove trailing asterisks from start_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
-SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'\*$', ''))
-WHERE REGEXP_CONTAINS(start_station_name, r'\*$');
-
--- Remove trailing ' (Temp)' from start_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
-SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r' \ (Temp\)$', ''))
-WHERE REGEXP_CONTAINS(start_station_name, r' \ (Temp\)$');
-
--- Remove leading '(Public Rack) - ' from start_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
-SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'^\(Public Rack\) - ', ''))
-WHERE REGEXP_CONTAINS(start_station_name, r'^\(Public Rack\) - ');
+                                          -- ## Fix start stations
 
 -- Remove trailing ' (Public Rack) - ' from start_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
+UPDATE `cyclistic-data-strategy.555.ALLCLEAN`
 SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r' \(Public Rack\) - $', ''))
 WHERE REGEXP_CONTAINS(start_station_name, r' \(Public Rack\) - $');
 
+-- Remove trailing asterisks from start_station_name
+UPDATE `cyclistic-data-strategy.555.ALLCLEAN`
+SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'\*$', ''))
+WHERE REGEXP_CONTAINS(start_station_name, r'\*$');
+
+-- Remove trailing ' (Temp)' from start_station_name
+UPDATE `cyclistic-data-strategy.555.ALLCLEAN`
+SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r' \(Temp\)$', ''))
+WHERE REGEXP_CONTAINS(start_station_name, r' \(Temp\)$');
+
+-- Remove leading '(Public Rack) - ' from start_station_name
+UPDATE `cyclistic-data-strategy.555.ALLCLEAN`
+SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'^\(Public Rack\) - ', ''))
+WHERE REGEXP_CONTAINS(start_station_name, r'^\(Public Rack\) - ');
+
 -- Remove occurrences of 'midblock' from start_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
+UPDATE `cyclistic-data-strategy.555.ALLCLEAN`
 SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'midblock', ''))
 WHERE REGEXP_CONTAINS(start_station_name, r'midblock');
 
 -- Change 'Buckingham - Fountain' to 'Buckingham Fountain' in start_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
+UPDATE `cyclistic-data-strategy.555.ALLCLEAN`
 SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'Buckingham - Fountain', 'Buckingham Fountain'))
 WHERE REGEXP_CONTAINS(start_station_name, r'Buckingham - Fountain');
 
 -- Change 'Mason & Archer' to 'Mason Ave & Archer Ave' in start_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
+UPDATE `cyclistic-data-strategy.555.ALLCLEAN`
 SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'Mason & Archer', 'Mason Ave & Archer Ave'))
 WHERE REGEXP_CONTAINS(start_station_name, r'Mason & Archer');
 
-               -- Repeat the same for end stations.
+-- ## Repeat the same for end stations.
+
+-- Remove trailing ' (Public Rack) - ' from end_station_name
+UPDATE `cyclistic-data-strategy.555.ALLCLEAN`
+SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r' \(Public Rack\) - $', ''))
+WHERE REGEXP_CONTAINS(end_station_name, r' \(Public Rack\) - $');
 
 -- Remove trailing asterisks from end_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
+UPDATE `cyclistic-data-strategy.555.ALLCLEAN`
 SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'\*$', ''))
 WHERE REGEXP_CONTAINS(end_station_name, r'\*$');
 
 -- Remove trailing ' (Temp)' from end_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
-SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r' \ (Temp\)$', ''))
-WHERE REGEXP_CONTAINS(end_station_name, r' \ (Temp\)$');
+UPDATE `cyclistic-data-strategy.555.ALLCLEAN`
+SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r' \(Temp\)$', ''))
+WHERE REGEXP_CONTAINS(end_station_name, r' \(Temp\)$');
 
 -- Remove leading '(Public Rack) - ' from end_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
+UPDATE `cyclistic-data-strategy.555.ALLCLEAN`
 SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'^\(Public Rack\) - ', ''))
 WHERE REGEXP_CONTAINS(end_station_name, r'^\(Public Rack\) - ');
 
--- Remove trailing ' (Public Rack) - ' from end_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
-SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r' \(Public Rack\) - $', ''))
-WHERE REGEXP_CONTAINS(end_station_name, r' \(Public Rack\) - $');
-
 -- Remove occurrences of 'midblock' from end_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
+UPDATE `cyclistic-data-strategy.555.ALLCLEAN`
 SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'midblock', ''))
 WHERE REGEXP_CONTAINS(end_station_name, r'midblock');
 
 -- Change 'Buckingham - Fountain' to 'Buckingham Fountain' in end_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
+UPDATE `cyclistic-data-strategy.555.ALLCLEAN`
 SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'Buckingham - Fountain', 'Buckingham Fountain'))
 WHERE REGEXP_CONTAINS(end_station_name, r'Buckingham - Fountain');
 
 -- Change 'Mason & Archer' to 'Mason Ave & Archer Ave' in end_station_name
-UPDATE `cyclistic-data-strategy.555.ALL`
+UPDATE `cyclistic-data-strategy.555.ALLCLEAN`
 SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'Mason & Archer', 'Mason Ave & Archer Ave'))
 WHERE REGEXP_CONTAINS(end_station_name, r'Mason & Archer');
+
+
 
 
 
