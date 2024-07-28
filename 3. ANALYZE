@@ -543,7 +543,7 @@ SELECT
   CONCAT(start_station_name, ' to ', end_station_name) AS route,
   COUNT(ride_id) AS number_of_rides,
   dayofweek,
-  timeofday,
+  time_of_day,
   rideable_type,
   member_casual
 FROM 
@@ -554,7 +554,7 @@ WHERE
 GROUP BY 
   member_casual, 
   dayofweek, 
-  timeofday, 
+  time_of_day, 
   route, 
   rideable_type
 ORDER BY 
