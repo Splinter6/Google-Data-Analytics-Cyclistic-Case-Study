@@ -118,7 +118,7 @@ totals AS (
 
 SELECT *
 FROM totals
-ORDER BY totals.null_count DESC NULLS LAST;
+ORDER BY totals.null_count ASC NULLS LAST;
 
 
 
