@@ -94,15 +94,14 @@ ORDER BY
 
 -- 3                        ##        Trip Count X Weekday
 
-
 SELECT
 COUNT(rideable_type) as rides_taken,
-  day,
+  dayofweek,
   member_casual,
 FROM 
-data
-GROUP BY member_casual, day
-ORDER BY member_casual
+`cyclistic-data-strategy.555.ALLCLEAN`
+GROUP BY member_casual, dayofweek
+ORDER BY member_casual DESC;
 
 
 -- 4                       ##         Most Popular DAY of Month
