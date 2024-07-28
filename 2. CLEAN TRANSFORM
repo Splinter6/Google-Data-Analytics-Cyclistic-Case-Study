@@ -90,13 +90,13 @@ SELECT
   EXTRACT(WEEK FROM started_at) AS WeekofYear,
   EXTRACT(DAY FROM started_at) AS DayofMonth,
   CASE
-    WHEN EXTRACT(dayofweek FROM started_at) = 1 THEN 'Monday'
-    WHEN EXTRACT(dayofweek FROM started_at) = 2 THEN 'Tuesday'
-    WHEN EXTRACT(dayofweek FROM started_at) = 3 THEN 'Wednesday'
-    WHEN EXTRACT(dayofweek FROM started_at) = 4 THEN 'Thursday'
-    WHEN EXTRACT(dayofweek FROM started_at) = 5 THEN 'Friday'
-    WHEN EXTRACT(dayofweek FROM started_at) = 6 THEN 'Saturday'
-    WHEN EXTRACT(dayofweek FROM started_at) = 7 THEN 'Sunday'
+    WHEN EXTRACT(dayofweek FROM started_at) = 1 THEN 'Sunday'
+    WHEN EXTRACT(dayofweek FROM started_at) = 2 THEN 'Monday'
+    WHEN EXTRACT(dayofweek FROM started_at) = 3 THEN 'Tuesday'
+    WHEN EXTRACT(dayofweek FROM started_at) = 4 THEN 'Wednesday'
+    WHEN EXTRACT(dayofweek FROM started_at) = 5 THEN 'Thursday'
+    WHEN EXTRACT(dayofweek FROM started_at) = 6 THEN 'Friday'
+    WHEN EXTRACT(dayofweek FROM started_at) = 7 THEN 'Saturday'
     ELSE CAST(EXTRACT(dayofweek FROM started_at) AS STRING)
   END AS dayofweek,
   CASE
@@ -123,10 +123,13 @@ SELECT
                    + COS(start_lat * 3.14 / 180) 
                    * COS(end_lat * 3.14 / 180) 
                    * POWER(SIN((end_lng - start_lng) * 3.14 / 180 / 2), 2))) * 3280.84 / 5280 AS distance_mi,
-  ROUND((6371 * 2 * ASIN(SQRT(POWER(SIN((end_lat - start_lat) * 3.14 / 180 / 2), 2)
-                   + COS(start_lat * 3.14 / 180) 
-                   * COS(end_lat * 3.14 / 180) 
-                   * POWER(SIN((end_lng - start_lng) * 3.14 / 180 / 2), 2))) * 3280.84 / 5280) / (TIMESTAMP_DIFF(ended_at, started_at, minute) / 60), 2) AS mph
+  CASE 
+    WHEN TIMESTAMP_DIFF(ended_at, started_at, minute) = 0 THEN NULL
+    ELSE ROUND((6371 * 2 * ASIN(SQRT(POWER(SIN((end_lat - start_lat) * 3.14 / 180 / 2), 2)
+                       + COS(start_lat * 3.14 / 180) 
+                       * COS(end_lat * 3.14 / 180) 
+                       * POWER(SIN((end_lng - start_lng) * 3.14 / 180 / 2), 2))) * 3280.84 / 5280) / (TIMESTAMP_DIFF(ended_at, started_at, minute) / 60), 2)
+  END AS mph
 FROM
   `cyclistic-data-strategy.555.ALL`;
 
