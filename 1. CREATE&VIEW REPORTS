@@ -246,3 +246,35 @@ SELECT pattern, count
 FROM counts
 WHERE count > 0;
 
+
+-- ###  Ride Report
+
+-- ## Cumulative % and count of trips between 0 and 80 minutes in duration (From ALL table)
+
+WITH TotalTrips AS (
+    SELECT COUNT(*) AS total
+    FROM cyclistic-data-strategy.555.ALL
+    WHERE TIMESTAMP_DIFF(ended_at, started_at, minute) >= 0
+    AND TIMESTAMP_DIFF(ended_at, started_at, minute) < 80
+),
+DurationCounts AS (
+    SELECT
+        TIMESTAMP_DIFF(ended_at, started_at, minute) AS dur_m,
+        COUNT(*) AS count
+    FROM cyclistic-data-strategy.555.ALL
+    WHERE TIMESTAMP_DIFF(ended_at, started_at, minute) >= 0
+    AND TIMESTAMP_DIFF(ended_at, started_at, minute) < 80
+    GROUP BY dur_m
+)
+SELECT
+    d.dur_m,
+    d.count,
+    ROUND((d.count / t.total) * 100, 2) AS percentage,
+    ROUND(SUM((d.count / t.total) * 100) OVER (ORDER BY d.dur_m), 2) AS cumulative_percentage,
+    SUM(d.count) OVER (ORDER BY d.dur_m) AS cumulative_count
+FROM DurationCounts d, TotalTrips t
+ORDER BY d.dur_m ASC;
+
+trips 0-80 min = 5644862 entries = 98.4% of raw table
+total table = 5,734,170
+
