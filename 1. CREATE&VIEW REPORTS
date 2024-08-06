@@ -8,6 +8,7 @@
 a. Null Report
 b. Distinct Value Report
 c. Irregular Pattern Report
+d. Ride Duration Report
 
 
 
@@ -247,7 +248,7 @@ FROM counts
 WHERE count > 0;
 
 
--- ###  Ride Report
+-- ###  Ride Duration Report
 
 -- ## Cumulative % and count of trips between 0 and 80 minutes in duration (From ALL table)
 
