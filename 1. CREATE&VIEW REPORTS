@@ -156,7 +156,14 @@ SELECT 'member_casual', COUNT(DISTINCT member_casual) FROM `cyclistic-data-strat
 
 WITH counts AS (
   SELECT 
-    'start_station_starts_with_space' AS pattern, COUNTIF(REGEXP_CONTAINS(start_station_name, r'^ ')) AS count FROM `cyclistic-data-strategy.555.ALL`
+    'start_station_public_rack' AS pattern, COUNTIF(REGEXP_CONTAINS(start_station_name, r'Public Rack - ')) AS count FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+
+  SELECT 
+    'start_station_contains_TEST', COUNTIF(REGEXP_CONTAINS(start_station_name, r'TEST')) FROM `cyclistic-data-strategy.555.ALL`
+  UNION ALL
+  SELECT 
+    'start_station_starts_with_space', COUNTIF(REGEXP_CONTAINS(start_station_name, r'^ ')) FROM `cyclistic-data-strategy.555.ALL`
   UNION ALL
   SELECT 
     'start_station_ends_with_space', COUNTIF(REGEXP_CONTAINS(start_station_name, r' $')) FROM `cyclistic-data-strategy.555.ALL`
@@ -246,6 +253,7 @@ WITH counts AS (
 SELECT pattern, count
 FROM counts
 WHERE count > 0;
+
 
 
 -- ###  Ride Duration Report
