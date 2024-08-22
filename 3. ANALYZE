@@ -408,21 +408,7 @@ GROUP BY
 ORDER BY
     TotalDistance_mi DESC;
 
---                        ##        DISTANCE
 
---                        ##        Avg of miles traveled members vs casual riders and bike type
-
-SELECT
-    member_casual,
-    rideable_type,
-    ROUND(AVG(distance_mi),2) AS TotalDistance_mi
-FROM
-    `cyclistic-data-strategy.555.ALLCLEAN`
-GROUP BY
-    member_casual,
-    rideable_type
-ORDER BY
-    TotalDistance_mi DESC;
 
 
 
