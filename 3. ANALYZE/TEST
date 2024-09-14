@@ -1,0 +1,609 @@
+
+3. ANALYZE 
+
+--        All calcs compare MEMBER & CASUAL riders
+
+
+
+
+
+OUTLINE:
+
+###   COUNT
+##1        Trip Count Total
+##2        Trip Count X Bike Type
+##3        Trip Count X Weekday
+##4        Most Popular Month Day
+##5        Most popular Month
+##6        Most popular Day of Week
+##7        Most popular Time of Day
+##8        Most popular Time of Day X Season
+##9        Trip Count X Hour
+
+
+###   DURATIONS
+##1        AVG, MAX, MODE, MEDIAN
+##2        Median Ride Duration
+##3        RIDE COUNT X DAY OF WEEK X MEMBER TYPE
+##4        RIDE DURATION COUNT x PERCENT of RIDES: MEMBER
+##5        RIDE DURATION COUNT x PERCENT of RIDES: CASUAL
+##6        Cumulative percentage of trips between 0 and 80 minutes in duration
+
+###   DISTANCE
+##1        Avg of miles traveled by bike type
+##2        Median miles traveled
+
+###   STATION/ROUTE POPULARITY
+##1        Find mode of start and end stations excluding nulls
+##2        Top 20 Start Stations by Total Ride Count
+##3        Top 20 End stations with Total Ride Count
+##4        Top 10 Routes by ride count and day of week
+
+
+###   SPEED?
+
+
+
+
+
+
+
+-- 1                        ##        Total Trips
+
+SELECT 
+ TotalTrips,
+  TotalMemberTrips,
+  TotalCasualTrips,
+  ROUND(TotalMemberTrips/TotalTrips,2)*100 AS MemberPercentage,
+  ROUND(TotalCasualTrips/TotalTrips,2)*100 AS CasualPercentage
+FROM 
+(
+  SELECT
+    COUNT(ride_id) AS TotalTrips,
+    COUNTIF(member_casual = 'member') AS TotalMemberTrips,
+    COUNTIF(member_casual = 'casual') AS TotalCasualTrips
+  FROM
+  `cyclistic-data-strategy.555.ALLCLEAN`
+)
+
+
+
+-- 2                        ##        Trip Count X User X bike type
+
+WITH TotalCounts AS (
+    SELECT COUNT(*) AS TotalRideNumber
+    FROM `cyclistic-data-strategy.555.ALLCLEAN`
+)
+SELECT
+    member_casual,
+    rideable_type,
+    COUNT(*) AS TotalTrips,
+    ROUND((COUNT(*) / TotalCounts.TotalRideNumber) * 100, 1) AS PercentageOfTotal,
+    TotalCounts.TotalRideNumber
+FROM
+    `cyclistic-data-strategy.555.ALLCLEAN`,
+    TotalCounts
+GROUP BY
+    member_casual,
+    rideable_type,
+    TotalRideNumber
+ORDER BY
+    TotalTrips DESC;
+
+
+
+-- 3                        ##        Trip Count X Weekday
+
+SELECT
+COUNT(rideable_type) as rides_taken,
+  dayofweek,
+  member_casual,
+FROM 
+`cyclistic-data-strategy.555.ALLCLEAN`
+GROUP BY member_casual, dayofweek
+ORDER BY member_casual DESC;
+
+
+-- 4                       ##         Most Popular DAY of Month
+
+SELECT
+    DayofMonth,
+    COUNT(*) AS TotalTrips,
+    COUNT(CASE WHEN member_casual = 'member' THEN 1 END) AS MemberTrips,
+    COUNT(CASE WHEN member_casual = 'casual' THEN 1 END) AS CasualTrips
+FROM
+    `cyclistic-data-strategy.555.ALLCLEAN`
+GROUP BY
+    DayofMonth
+ORDER BY
+    DayofMonth
+LIMIT 10;
+
+
+-- 5                        ##        Most Popular MONTH 
+
+SELECT
+    month,
+    COUNT(*) AS TotalTrips,
+    COUNT(CASE WHEN member_casual = 'member' THEN 1 END) AS MemberTrips,
+    COUNT(CASE WHEN member_casual = 'casual' THEN 1 END) AS CasualTrips
+FROM
+    `cyclistic-data-strategy.555.ALLCLEAN`
+GROUP BY
+    month
+ORDER BY
+    month;
+
+-- 6                        ##        Most Popular Day of Week
+
+SELECT
+    dayofweek,
+    COUNT(*) AS TotalTrips,
+    COUNT(CASE WHEN member_casual = 'member' THEN 1 END) AS MemberTrips,
+    COUNT(CASE WHEN member_casual = 'casual' THEN 1 END) AS CasualTrips
+FROM
+    `cyclistic-data-strategy.555.ALLCLEAN`
+GROUP BY
+    dayofweek
+
+
+
+
+##1        Total Trips
+##2        Trip Count X User X bike type
+##3        Trip Count X Weekday
+##4        Most Popular Month Day
+##5        Most popular Month
+##6        Most popular Day of Week
+##7        Most popular Time of Day
+##8        Most popular Time of Day X Season
+##9        RIDE COUNT BY HOUR 
+
+-- 7                        ##        Most popular time of day
+
+Most popular time of day to ride
+SELECT
+    timeofday,
+    COUNT(*) AS TotalTrips,
+    COUNT(CASE WHEN member_casual = 'member' THEN 1 END) AS MemberTrips,
+    COUNT(CASE WHEN member_casual = 'casual' THEN 1 END) AS CasualTrips
+FROM
+    `cyclistic-data-strategy.555.ALLCLEAN`
+GROUP BY
+    timeofday
+ORDER BY
+    timeofday;
+
+-- 8                        ##        Time of day by Season
+
+WITH CategorizedTrips AS (
+    SELECT
+        CASE
+            WHEN EXTRACT(HOUR FROM started_at) BETWEEN 6 AND 11 THEN 'Morning  (6-11am)'
+            WHEN EXTRACT(HOUR FROM started_at) BETWEEN 12 AND 17 THEN 'Afternoon(12-5pm)'
+            WHEN EXTRACT(HOUR FROM started_at) BETWEEN 18 AND 23 THEN 'Evening  (6-11pm)'
+            ELSE 'Night       (12-5am)'
+        END AS time_of_day,
+        COUNT(*) AS TotalTrips,
+        COUNT(CASE WHEN member_casual = 'member' THEN 1 END) AS MemberTrips,
+        COUNT(CASE WHEN member_casual = 'casual' THEN 1 END) AS CasualTrips
+    FROM
+        `cyclistic-data-strategy.555.ALLCLEAN`
+    GROUP BY
+        time_of_day
+)
+SELECT
+    time_of_day,
+    TotalTrips,
+    MemberTrips,
+    CasualTrips
+FROM
+    CategorizedTrips
+ORDER BY
+    CASE
+        WHEN time_of_day = 'Morning' THEN 1
+        WHEN time_of_day = 'Afternoon' THEN 2
+        WHEN time_of_day = 'Evening' THEN 3
+        ELSE 4
+    END
+
+
+
+
+-- 9                       ## Ride Count by Hour
+
+
+
+
+
+
+
+---                        ###        RIDE DURATIONS        ###
+
+
+-- 1                       ##       AVG, MAX, MODE Duration        ##
+
+WITH Durations AS (
+    SELECT
+        member_casual,
+        dur_m,
+        dur_h
+    FROM
+        `cyclistic-data-strategy.555.ALLCLEAN`
+),
+ModeDurations AS (
+    SELECT
+        member_casual,
+        dur_m,
+        COUNT(*) AS frequency,
+        ROW_NUMBER() OVER (PARTITION BY member_casual ORDER BY COUNT(*) DESC) AS rn
+    FROM
+        Durations
+    GROUP BY
+        member_casual, dur_m
+)
+SELECT
+    d.member_casual,
+    ROUND(AVG(d.dur_m),2) AS Avg_Duration_minutes,
+    MAX(d.dur_h) AS Max_Duration_in_hours,
+    m.dur_m AS Mode_Duration_minutes
+FROM
+    Durations d
+JOIN
+    ModeDurations m ON d.member_casual = m.member_casual AND m.rn = 1
+GROUP BY
+    d.member_casual, m.dur_m
+ORDER BY
+    d.member_casual;
+
+
+
+-- 2                        ###        RIDE COUNT X DAY OF WEEK X MEMBER TYPE
+
+SELECT 
+  dayofweek,
+  COUNT(CASE WHEN member_casual = 'member' THEN rideable_type END) AS member_rides,
+  COUNT(CASE WHEN member_casual = 'casual' THEN rideable_type END) AS casual_rides
+FROM 
+  `cyclistic-data-strategy.555.ALLCLEAN`
+GROUP BY 
+  dayofweek
+ORDER BY 
+  member_rides ASC;
+
+
+--                        ##      RIDE COUNT BY HOUR     
+
+
+--                        ##      RIDE DURATION COUNT x PERCENT of RIDES
+
+WITH ride_times AS (
+ SELECT
+   dur_m,
+   COUNT(*) AS ride_count,
+   100 * COUNT(*) / SUM(COUNT(*)) OVER () AS ride_percent
+ FROM
+   `cyclistic-data-strategy.555.ALLCLEAN`
+ GROUP BY
+   dur_m
+)
+SELECT
+ dur_m AS ride_time_minutes,
+ ride_count,
+ ROUND(ride_percent, 2) AS ride_percent
+FROM
+ ride_times
+WHERE
+ dur_m > 0 and dur_m <= 60
+ORDER BY
+ dur_m;
+
+
+--                        ##        RIDE DURATION COUNT x PERCENT of RIDES: MEMBER
+
+WITH ride_times AS (
+ SELECT
+   dur_m,
+   COUNT(*) AS ride_count,
+   100 * COUNT(*) / SUM(COUNT(*)) OVER () AS ride_percent
+ FROM
+   `cyclistic-data-strategy.555.ALLCLEAN`
+  WHERE
+ member_casual = 'member'
+ GROUP BY
+   dur_m
+)
+SELECT
+ dur_m AS ride_time_minutes,
+ ride_count,
+ ROUND(ride_percent, 2) AS ride_percent
+FROM
+ ride_times
+WHERE
+ dur_m > 0 and dur_m <= 60
+ORDER BY
+ dur_m
+
+
+--                        ##        RIDE DURATION COUNT x PERCENT of RIDES: CASUAL
+WITH ride_times AS (
+ SELECT
+   dur_m,
+   COUNT(*) AS ride_count,
+   100 * COUNT(*) / SUM(COUNT(*)) OVER () AS ride_percent
+ FROM
+   `cyclistic-data-strategy.555.ALLCLEAN`
+  WHERE
+ member_casual = 'casual'
+ GROUP BY
+   dur_m
+)
+SELECT
+ dur_m AS ride_time_minutes,
+ ride_count,
+ ROUND(ride_percent, 2) AS ride_percent
+FROM
+ ride_times
+WHERE
+ dur_m >= 1 and dur_m <= 60
+ORDER BY
+ dur_m
+
+--                        ##        Cumulative percentage of trips between 0 and 80 minutes in duration.
+
+WITH TotalTrips AS (
+    SELECT COUNT(*) AS total
+    FROM `cyclistic-data-strategy.555.ALL`
+    WHERE TIMESTAMP_DIFF(ended_at, started_at, minute) >= 0
+    AND TIMESTAMP_DIFF(ended_at, started_at, minute) < 80
+),
+DurationCounts AS (
+    SELECT
+        TIMESTAMP_DIFF(ended_at, started_at, minute) AS trip_duration,
+        COUNT(*) AS frequency
+    FROM `cyclistic-data-strategy.555.ALL`
+    WHERE TIMESTAMP_DIFF(ended_at, started_at, minute) >= 0
+    AND TIMESTAMP_DIFF(ended_at, started_at, minute) < 80
+    GROUP BY trip_duration
+)
+SELECT
+    d.trip_duration,
+    d.frequency,
+    ROUND((d.frequency / t.total) * 100, 2) AS percentage,
+    ROUND(SUM((d.frequency / t.total) * 100) OVER (ORDER BY d.trip_duration), 2) AS cumulative_percentage
+FROM DurationCounts d, TotalTrips t
+ORDER BY d.trip_duration ASC;
+
+--                        ##        Median Duration of Ride
+
+SELECT
+    member_casual,
+    median_ride_length
+FROM (
+    SELECT
+        member_casual,
+        APPROX_QUANTILES(dur_m, 2)[OFFSET(1)] AS median_ride_length
+    FROM
+        `cyclistic-data-strategy.555.ALLCLEAN`
+    GROUP BY
+        member_casual
+)
+ORDER BY
+    median_ride_length DESC
+LIMIT 2;
+
+--                        ##        DISTANCE
+
+--                        ##        Avg of miles traveled members vs casual riders and bike type
+
+SELECT
+    member_casual,
+    rideable_type,
+    ROUND(AVG(distance_mi),2) AS TotalDistance_mi
+FROM
+    `cyclistic-data-strategy.555.ALLCLEAN`
+GROUP BY
+    member_casual,
+    rideable_type
+ORDER BY
+    TotalDistance_mi DESC;
+
+
+
+
+
+including the mph column helped me find outliers in the data.
+SELECT
+*,
+mph
+FROM
+`cyclistic-data-strategy.555.ALLCLEAN`
+WHERE mph IS NULL
+including the mph column helped me find outliers in the data.
+SELECT
+*,
+mph
+FROM
+`cyclistic-data-strategy.555.ALLCLEAN`
+WHERE mph IS NULL
+*MEAN MEDIAN MODE?
+
+
+
+--                        ###        STATION POPULARITY
+
+DRAFT __ BETAMODE
+
+
+--                        ##        Find mode of start and end stations excluding nulls
+
+
+WITH StartStationFrequency AS (
+  SELECT 
+    start_station_name,
+    COUNT(*) AS start_frequency
+  FROM 
+    `bike_share_data`
+  WHERE 
+    start_station_name IS NOT NULL
+  GROUP BY 
+    start_station_name
+),
+EndStationFrequency AS (
+  SELECT 
+    end_station_name,
+    COUNT(*) AS end_frequency
+  FROM 
+    `bike_share_data`
+  WHERE 
+    end_station_name IS NOT NULL
+  GROUP BY 
+    end_station_name
+)
+SELECT 
+  'start_station' AS station_type,
+  start_station_name AS station_name,
+  start_frequency AS frequency
+FROM 
+  StartStationFrequency
+ORDER BY 
+  start_frequency DESC
+LIMIT 1
+
+UNION ALL
+
+SELECT 
+  'end_station' AS station_type,
+  end_station_name AS station_name,
+  end_frequency AS frequency
+FROM 
+  EndStationFrequency
+ORDER BY 
+  end_frequency DESC
+LIMIT 1;
+
+
+--                        ##       Top 20 Start Stations with Total Ride Count
+
+SELECT 
+  start_station_name,
+  COUNT(ride_id) AS total,
+  SUM(CASE WHEN member_casual = 'member' THEN 1 ELSE 0 END) AS member,
+  SUM(CASE WHEN member_casual = 'casual' THEN 1 ELSE 0 END) AS casual
+FROM 
+  `cyclistic-data-strategy.555.ALLCLEAN`
+WHERE start_station_name IS NOT NULL
+GROUP BY 
+  start_station_name
+ORDER BY 
+  total DESC
+LIMIT 20;
+
+
+--                        ##        Top 20 End_Stations with Total Ride Count
+
+END STATION POPULARITY
+
+SELECT 
+  end_station_name,
+  COUNT(ride_id) AS total,
+  SUM(CASE WHEN member_casual = 'member' THEN 1 ELSE 0 END) AS member,
+  SUM(CASE WHEN member_casual = 'casual' THEN 1 ELSE 0 END) AS casual
+FROM 
+  `cyclistic-data-strategy.555.ALLCLEAN`
+WHERE end_station_name IS NOT NULL
+GROUP BY 
+  end_station_name
+ORDER BY 
+  total DESC
+LIMIT 20;
+
+
+
+--                        ###        ROUTE POPULARITY
+
+
+--                        ###       Top 10 Routes by day of week, time of day, and type.
+
+SELECT 
+  CONCAT(start_station_name, ' to ', end_station_name) AS route,
+  COUNT(ride_id) AS number_of_rides,
+  dayofweek,
+  time_of_day,
+  rideable_type,
+  member_casual
+FROM 
+  `cyclistic-data-strategy.555.ALLCLEAN`
+WHERE 
+  start_station_name IS NOT NULL
+  AND end_station_name IS NOT NULL
+GROUP BY 
+  member_casual, 
+  dayofweek, 
+  time_of_day, 
+  route, 
+  rideable_type
+ORDER BY 
+  number_of_rides DESC
+LIMIT 10;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+--                        ###
+
+WITH MemberData AS (
+  SELECT
+    started_at,
+    ended_at,
+    dur_m,
+    start_station_name,
+    end_station_name,
+    member_casual
+  FROM
+    `cyclistic-data-strategy.555.ALL`
+  WHERE
+    member_casual = 'member'
+),
+CasualData AS (
+  SELECT
+    started_at,
+    ended_at,
+    dur_m,
+    start_station_name,
+    end_station_name,
+    member_casual
+  FROM
+    `cyclistic-data-strategy.555.ALL`
+  WHERE
+    member_casual = 'casual'
+)
+
+-- Compare average trip durations of Members vs Casual users
+SELECT
+  'Member' AS user_type,
+  AVG(dur_m) AS average_trip_duration
+FROM
+  MemberData
+UNION ALL
+SELECT
+  'Casual' AS user_type,
+  AVG(dur_m) AS average_trip_duration
+FROM
+  CasualData;
+*/
