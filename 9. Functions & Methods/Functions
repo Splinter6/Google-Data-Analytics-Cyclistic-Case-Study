@@ -1,0 +1,66 @@
+/*
+
+Aggregate Functions:
+
+COUNT(): Counts the number of rows or non-null values in a column.
+SUM(): Calculates the sum of numeric values in a column.
+AVG(): Calculates the average of numeric values in a column.
+MIN(): Returns the minimum value in a column.
+MAX(): Returns the maximum value in a column.
+
+Scalar Functions:
+
+CONCAT(): Concatenates two or more strings.
+UPPER(), LOWER(): Converts a string to uppercase or lowercase.
+SUBSTRING(), LEFT(), RIGHT(): Extracts a substring from a string.
+TRIM(), LTRIM(), RTRIM(): Removes leading and trailing spaces from a string.
+ROUND(), CEIL(), FLOOR(): Rounds a numeric value to the nearest integer or specified decimal places.
+DATE(), YEAR(), MONTH(), DAY(): Extracts date parts from a date/time value.
+NOW(), CURRENT_DATE(), CURRENT_TIMESTAMP(): Returns the current date and time.
+
+Mathematical Functions:
+
+ABS(): Returns the absolute value of a number.
+SQRT(): Calculates the square root of a number.
+POWER(): Raises a number to a specified power.
+EXP(), LOG(), LOG10(): Exponential and logarithmic functions.
+
+Conditional Functions:
+
+CASE WHEN: Evaluates conditions and returns a result based on the first satisfied condition.
+        SELECT
+            CASE
+                WHEN column1 > 10 THEN 'High'
+                WHEN column1 > 5 THEN 'Medium'
+                ELSE 'Low'
+            END AS priority
+        FROM table_name;
+
+COALESCE(): Returns the first non-null value in a list of expressions.
+IFNULL(), NULLIF(): Handle null values.
+
+Date and Time Functions:
+
+DATE_ADD(), DATE_SUB(): Adds or subtracts intervals from dates.
+DATEDIFF(): Calculates the difference between two dates.
+DATE_FORMAT(): Formats date/time values into strings.
+
+Type Conversion Functions:
+
+CAST(), CONVERT(): Converts data types.
+
+
+# Aggregated Subqueries: Subqueries that return a single value (scalar) or a list of values (table).
+                  SELECT 
+                      (SELECT COUNT(*) FROM other_table) AS total_rows,
+                      (SELECT AVG(column1) FROM other_table) AS avg_value
+                  FROM table_name;
+
+
+# Window Functions: Analytic functions used to perform calculations across a set of rows.
+                    SELECT
+                        column1,
+                        SUM(column1) OVER (PARTITION BY column2) AS sum_by_column2
+                    FROM table_name;
+
+*/
