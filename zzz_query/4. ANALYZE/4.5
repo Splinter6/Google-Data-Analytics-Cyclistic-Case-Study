@@ -1,0 +1,46 @@
+--Rides start station = end station
+SELECT
+  ride_id,
+  member_casual,
+  start_station_name,
+  end_station_name,
+  started_at,
+  ended_at
+FROM
+  `cyclistic-data-strategy.555.ALLCLEAN`
+WHERE
+  start_station_id = end_station_id
+
+--191576 total rides
+
+-- percent of member vs casual where start station = end station
+SELECT
+  member_casual,
+  COUNTIF(start_station_id = end_station_id) AS same_station_count,
+  COUNT(ride_id) AS total_count,
+  ROUND((COUNTIF(start_station_id = end_station_id) / COUNT(ride_id)) * 100, 2) AS same_station_percentage
+FROM
+  `cyclistic-data-strategy.555.ALL`
+GROUP BY
+  member_casual
+
+--percent of M vs C & Total / where start_station = end_station
+SELECT
+  member_casual,
+  COUNTIF(start_station_id = end_station_id) AS same_station_count,
+  COUNT(ride_id) AS total_count,
+  ROUND((COUNTIF(start_station_id = end_station_id) / COUNT(ride_id)) * 100, 2) AS same_station_percentage
+FROM
+  `cyclistic-data-strategy.555.ALL`
+GROUP BY
+  member_casual
+
+UNION ALL
+
+SELECT
+  'All' AS member_casual,
+  COUNTIF(start_station_id = end_station_id) AS same_station_count,
+  COUNT(ride_id) AS total_count,
+  ROUND((COUNTIF(start_station_id = end_station_id) / COUNT(ride_id)) * 100, 2) AS same_station_percentage
+FROM
+  `cyclistic-data-strategy.555.ALL`
