@@ -201,8 +201,8 @@ WHERE REGEXP_CONTAINS(start_station_name, r'Streeter Dr/Grand Ave'); -- This sta
 
 -- Remove leading '(Public Rack) - ' from end_station_name
 UPDATE `cyclistic-data-strategy.555.ALLCLEAN`
-SET start_station_name = TRIM(REGEXP_REPLACE(start_station_name, r'^Public Rack - ', ''))
-WHERE REGEXP_CONTAINS(start_station_name, r'^Public Rack - ');
+SET end_station_name = TRIM(REGEXP_REPLACE(end_station_name, r'^Public Rack - ', ''))
+WHERE REGEXP_CONTAINS(end_station_name, r'^Public Rack - ');
 
 -- Remove trailing asterisks from end_station_name
 UPDATE `cyclistic-data-strategy.555.ALLCLEAN`
