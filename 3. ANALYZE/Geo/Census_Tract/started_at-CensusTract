@@ -1,0 +1,47 @@
+To assign each ride in your bikeshare dataset to the Census Tract they started in, you'll need two pieces of information:
+
+Bikeshare Ride Data: This includes the start_lat and start_lng columns (representing the latitude and longitude where the ride started).
+Census Tract Boundaries: This would typically be in the form of a GeoJSON or Shapefile that contains the boundaries of each Census Tract along with its unique identifier (e.g., census_tract_id).
+Steps:
+Load Census Tract Boundaries: This dataset needs to have polygon geometry for each Census Tract, along with the corresponding identifier.
+Spatial Join: Use a spatial join to check which Census Tract polygon each ride's start_lat and start_lng coordinates fall within.
+Example Query in BigQuery:
+BigQuery supports geospatial functions, so you can perform a spatial join directly.
+
+
+WITH census_tracts AS (
+  SELECT
+    census_tract_id,
+    ST_GEOGFROMGEOJSON(geojson_column) AS tract_geom  -- Replace with actual geometry column from your Census Tract GeoJSON dataset
+  FROM
+    `your_project.your_dataset.census_tracts`
+)
+
+SELECT
+  t1.ride_id,
+  t1.start_lat,
+  t1.start_lng,
+  c.census_tract_id
+FROM
+  `cyclistic-data-strategy.555.ALLCLEAN` AS t1
+JOIN
+  census_tracts AS c
+ON
+  ST_WITHIN(ST_GEOGPOINT(t1.start_lng, t1.start_lat), c.tract_geom);  -- Spatial join to find the ride in the Census Tract
+
+
+Census Tracts (census_tracts):
+
+This CTE loads the Census Tract boundaries. It converts the GeoJSON column (geojson_column) containing the geometry into a GEOGRAPHY object using ST_GEOGFROMGEOJSON().
+Bikeshare Rides (ALLCLEAN):
+
+-The query reads the start_lat and start_lng from the bikeshare dataset and uses ST_GEOGPOINT() to create a geographic point from these coordinates.
+Spatial Join:
+-ST_WITHIN(): This function checks if the point (the ride's start location) falls within the boundaries of a Census Tract. If the ride is within a Census Tract, the census_tract_id is assigned to the ride.
+
+Prerequisites:
+-The Census Tract boundaries dataset should already exist in your BigQuery project, and the geometry should be in GeoJSON, WKT, or another geographic format.
+-Ensure that your bikeshare data contains valid latitude and longitude values.
+
+Output:
+This query will assign each ride to a census_tract_id, allowing you to analyze rides based on the Census Tract where they started.
